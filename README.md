@@ -1,0 +1,36 @@
+# Trim
+
+A local, single-user dashboard for tracking a weight-loss goal against whatever else you log alongside it (steps, calories, protein, stress, streaks, whatever your sheet has). Cut the noise, trust the trend.
+
+## What this is (and isn't)
+
+Trim is **not** an AI app by itself — it has no built-in LLM calls for anything the dashboard itself does. It reads your data straight from one or more Google Sheets (public CSV export links, no API keys), joins them by date, and turns the result into a weekly-anchored dashboard: KPIs, a trend chart, and a Y/N daily-goal compliance card, all following the same week selector.
+
+The one optional AI feature is the **Coach**: click "Analyze Week" and it shells out locally to the [Claude Code CLI](https://claude.com/product/claude-code) in headless mode to write a short weekly assessment (verdict + recommendation), stored per-week so it can check your last few weeks of history before writing a new one. This requires the `claude` CLI installed and authenticated on your own machine — nothing is sent to a hosted API by this app, and if you don't have the CLI installed, everything else in Trim still works fine without it.
+
+## Setup
+
+```bash
+npm install
+npm start
+```
+
+Then open `http://localhost:3002/trim-app`.
+
+On first run, `config.json` doesn't exist yet — the server creates it automatically from the committed `config.example.json` template, which is just an empty shell (no sources, no profile). Open **Settings → Data** and add your first Google Sheet: a name, a public share link, and which columns map to what (Date, Number, Weight, Y/N Daily Goal, or Text). One column across all your sources needs to be Typed as Weight — it drives the trend chart and KPIs.
+
+Your sheet must be shared as "Anyone with the link can view" for the CSV export fetch to work — nothing else about the sheet needs to change.
+
+## Data and privacy
+
+`config.json`, `data.json`, and `recommendations.json` are gitignored — once you fill them in with your real sheets and data, none of it is tracked by git or leaves your machine except for the two things you explicitly point it at: the Google Sheets CSV export fetch (server-side, no browser CORS issue) and, only when you click "Analyze Week," a local headless Claude Code CLI call. Everything else is a small Express server (`server.js`) doing local file reads/writes; there's no database and no other external API calls anywhere in the app.
+
+`data.json` and `recommendations.json` aren't bootstrapped from a template — they start genuinely empty and are created the first time you refresh data or run an analysis, same as `config.json` starts as an empty shell rather than a fake pre-filled profile.
+
+## How the week works
+
+Every KPI, comparison, and "All Time" total is anchored to a shared week selector — complete weeks are the atomic unit, not a rolling day-window. The current in-progress week shows a live numerator (days elapsed so far) but no comparison; comparisons only appear once a week is complete. Week start (Sunday/Monday) is configurable in **Settings → Display**.
+
+## License
+
+[CC BY-NC 4.0](LICENSE) — Attribution-NonCommercial.

@@ -1,0 +1,2068 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Trim</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root{
+    /* Neutrals — structure and secondary interaction */
+    --bg:#0A0D11; --surface:#141820; --surface2:#202630;
+    --border:#29313D;                 /* subtle border — card edges, dividers */
+    --border2:#354052;                /* interactive slate — secondary/ghost control borders */
+    --border2-hover:#46546A;          /* interactive slate hover */
+    --ink:#F1F3F5; --sub:#9AA3AF; --muted:#6B7480;
+
+    /* Blue — Trim / Primary / Weight */
+    --primary:#4C8DFF; --primary-hover:#6BA0FF; --primary-active:#3A73E0;
+    --primary-soft:rgba(76,141,255,.14);
+    --on-primary:#06122A;
+
+    /* Orange — non-weight tracked metrics, inputs, behaviors (never a generic secondary color) */
+    --orange:#FF9A3C; --orange-hover:#FFAD5C;
+    --orange-soft:rgba(255,154,60,.14);
+
+    /* Purple — Coach / agentic intelligence */
+    --purple:#A78BFA; --purple-hover:#B9A3FC;
+    --purple-soft:rgba(167,139,250,.14);
+    --on-purple:#1E1533;
+
+    /* Green / Red — positive / negative state, never branding */
+    --good:#22C55E; --good-soft:rgba(34,197,94,.14);
+    --bad:#EF4444; --bad-soft:rgba(239,68,68,.14);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);color-scheme:dark;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1360px;margin:0 auto;padding:40px 48px 80px;}
+
+  /* ---------- header ---------- */
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;height:38px;}
+  .brand{display:flex;align-items:center;gap:18px;height:38px;}
+  .brand img{display:block;flex-shrink:0;height:38px;width:auto;}
+  .brand .txt{display:flex;flex-direction:column;justify-content:center;height:38px;}
+  .brand .txt .date{font-size:16px;line-height:16px;color:var(--sub);margin:0;}
+  .brand .txt .tag{font-size:22px;line-height:22px;font-weight:700;color:var(--ink);margin:5px 0 0;}
+  .actions{display:flex;align-items:center;gap:12px;}
+  .weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);
+    border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;width:210px;height:38px;box-sizing:border-box;}
+  .weeknav button{background:none;border:none;color:var(--sub);cursor:pointer;font-size:15px;padding:0 4px;flex-shrink:0;}
+  .weeknav button:hover{color:var(--ink);}
+  #week-range{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .btn{border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:1px solid var(--border2);
+    background:transparent;color:var(--sub);padding:9px 16px;height:38px;box-sizing:border-box;}
+  .btn:hover{color:var(--ink);border-color:var(--sub);}
+  .btn-primary{background:var(--primary-hover);border:none;color:var(--on-primary);font-size:12px;}
+  .btn-primary:hover{background:var(--primary);}
+  /* agentic action — invoking Coach — gets its own Purple treatment, never Blue */
+  .btn-agentic{background:var(--purple-hover);border:none;color:var(--on-purple);font-size:12px;}
+  .btn-agentic:hover{background:var(--purple);}
+  /* the trigger, not the commit — same slate shell as a secondary button, but a
+     Purple border + text + coach icon carry the agentic identity without a fill
+     competing with Save Changes for "loudest button on the screen" */
+  .btn-agentic-outline{background:transparent;border:1px solid var(--purple);color:var(--purple-hover);}
+  .btn-agentic-outline:hover{border-color:var(--purple-hover);color:var(--ink);}
+  .btn-agentic-outline svg{vertical-align:-2px;margin-right:6px;}
+  #coach-export-btn{padding-left:20px;padding-right:20px;}
+  .gear{width:38px;height:38px;border-radius:8px;border:1px solid var(--border2);
+    background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);flex-shrink:0;}
+  .gear:hover{color:var(--ink);border-color:var(--sub);}
+  /* Blue fill while the config panel is open — same "here's where you are, click
+     to leave" role as the settings-tab underline, and doubles as the visual
+     handle back to the dashboard. */
+  .gear.active{background:var(--primary);border-color:var(--primary);color:var(--on-primary);}
+
+  /* ---------- shared cards ---------- */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;}
+  .label{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--sub);text-transform:uppercase;}
+  .sub{font-size:12px;color:var(--muted);}
+
+  /* ---------- KPI row ---------- */
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .kpi-card .val{font-size:28px;font-weight:700;margin-top:6px;}
+  .kpi-card .kpisub{font-size:12px;color:var(--muted);margin-top:6px;}
+  .kpi-card .kpisub.kpi-good{color:var(--good);font-weight:700;}
+  .kpi-card .kpisub.kpi-bad{color:var(--bad);font-weight:700;}
+
+  /* ---------- trend card ---------- */
+  .trend-card{margin-bottom:20px;}
+  .trend-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;}
+  .badge{background:var(--primary-soft);color:var(--primary-hover);font-size:12px;font-weight:700;
+    border-radius:10px;padding:4px 12px;height:fit-content;}
+  .trend-num{font-size:28px;font-weight:700;}
+  .trend-num-sub{font-size:12px;color:var(--sub);margin-left:8px;}
+  .overlay-controls{display:flex;align-items:center;gap:10px;margin:10px 0 6px;font-size:12px;color:var(--sub);}
+  .overlay-controls select{background:var(--surface2);color:var(--ink);border:1px solid var(--border);
+    border-radius:6px;padding:5px 8px;font-size:12px;}
+  .switch{position:relative;width:36px;height:20px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+    cursor:pointer;transition:.15s;}
+  .slider:before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--muted);
+    border-radius:50%;transition:.15s;}
+  /* on/off state is generic UI, not a semantic color — neutral slate, not Blue */
+  /* on = positive/confirmed state, same role Green plays everywhere else — off stays neutral */
+  input:checked + .slider{background:var(--good);border-color:var(--good);}
+  input:checked + .slider:before{transform:translateX(16px);background:#06280F;}
+
+  /* ---------- targets ---------- */
+  .targets-card{margin-bottom:20px;}
+  .targets-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .targets-grid{display:flex;justify-content:space-between;}
+  .target{flex:1;}
+  .target .frac{font-size:20px;font-weight:700;margin-top:4px;}
+  .target .frac .mark{font-size:14px;margin-left:6px;}
+  .met{color:var(--good);} /* goal achieved = positive state, not Trim Blue */
+  .notmet{color:var(--sub);}
+
+  /* ---------- bottom row ---------- */
+  .bottom-row{display:grid;grid-template-columns:2fr 1fr;gap:20px;}
+  /* Coach card — agentic result, so it carries a subtle Purple identity: icon + card
+     border, not a saturated fill — Coach content is a subtle accent, not a takeover */
+  .coach-card{border-color:rgba(167,139,250,.3);}
+  .coach-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-weight:700;}
+  .coach-plus{width:26px;height:26px;border:2px solid var(--purple);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:var(--purple);font-weight:700;}
+  .coach-body{color:var(--sub);font-size:13px;line-height:1.7;}
+  .coming-soon{color:var(--muted);font-weight:700;margin-top:16px;font-size:13px;}
+
+  /* ---------- coach report — rendered markdown, meant to read like a real document ---------- */
+  .report-verdict{font-size:16px;font-weight:700;line-height:1.5;color:var(--ink);margin-bottom:16px;}
+  .report-reco{background:var(--purple-soft);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13.5px;line-height:1.6;color:var(--ink);}
+  .report-reco .fieldlabel{display:block;color:var(--purple-hover);margin-bottom:6px;}
+  .report-h{color:var(--ink);font-weight:700;line-height:1.3;margin:22px 0 10px;}
+  .report-h:first-child{margin-top:0;}
+  h2.report-h{font-size:18px;}
+  h3.report-h{font-size:15px;color:var(--purple-hover);}
+  h4.report-h{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;}
+  .report-p{color:var(--ink);font-size:13.5px;line-height:1.75;margin:0 0 13px;}
+  .report-list{margin:0 0 14px;padding-left:22px;color:var(--ink);font-size:13.5px;line-height:1.75;}
+  .report-list li{margin-bottom:5px;}
+  .report-quote{border-left:3px solid var(--purple);padding:2px 0 2px 14px;margin:0 0 14px;color:var(--sub);font-style:italic;}
+  .report-hr{border:none;border-top:1px solid var(--border);margin:22px 0;}
+  .report-table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:13px;}
+  .report-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--border2);color:var(--sub);font-weight:700;}
+  .report-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--ink);}
+  .report-table tr:last-child td{border-bottom:none;}
+  .report-table code, .report-p code{background:var(--surface2);border-radius:4px;padding:1px 5px;font-size:12px;}
+  .metric-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .metric-row:last-child{border-bottom:none;}
+  .metric-row .t{color:var(--muted);}
+
+  /* ---------- settings view ---------- */
+  /* Thin blue top border reads as "the gear opened this panel" — same blue as
+     the active gear fill, so the two connect visually as one open/close unit. */
+  #settings-view{display:none;border-top:1px solid var(--primary);padding-top:20px;}
+  .settings-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:28px;}
+  .settings-tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);
+    font-size:13px;font-weight:700;cursor:pointer;padding:10px 4px;margin-right:22px;}
+  .settings-tab-btn:hover{color:var(--sub);}
+  .settings-tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+  .settings-tab-btn.locked{color:var(--muted);opacity:.5;cursor:not-allowed;}
+  .settings-tab-btn.locked:hover{color:var(--muted);}
+  .settings-tab-content{min-height:200px;}
+  .section-title{margin:36px 0 6px;}
+  .section-desc{margin-bottom:16px;}
+  .req-note{color:var(--primary-hover);font-size:12px;margin-bottom:18px;}
+  .source-card{margin-bottom:20px;position:relative;}
+  .source-remove-btn{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--muted);
+    font-size:15px;cursor:pointer;line-height:1;padding:4px;}
+  .source-remove-btn:hover{color:var(--bad);}
+  .source-grid{display:grid;grid-template-columns:1fr 230px;gap:24px;margin-bottom:16px;}
+  .source-main{display:flex;flex-direction:column;gap:14px;min-width:0;}
+  .source-field{display:flex;flex-direction:column;gap:5px;}
+  .fieldlabel{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.03em;}
+  .name-input{font-weight:700;width:100%;}
+  .url-input{width:100%;font-family:monospace;font-size:12px;}
+  .source-side{display:flex;flex-direction:column;gap:10px;}
+  .rowbox{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
+  .rowbox .fieldlabel{margin-bottom:4px;display:block;}
+  .rowbox input{width:100%;background:transparent!important;border:none!important;color:var(--ink);font-weight:700;font-size:13px;padding:0!important;}
+  .anchor-link{font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;background:none;border:none;text-align:left;padding:0;}
+  .anchor-link.is-anchor{color:var(--ink);cursor:default;} /* selected config state — neutral, not Blue */
+  .anchor-badge{background:var(--surface2);color:var(--ink);font-size:11px;font-weight:700;
+    border-radius:9px;padding:3px 10px;margin-left:10px;white-space:nowrap;}
+  .detect-row{display:flex;gap:10px;margin-bottom:4px;}
+  input[type=text], input[type=number], input[type=date]{background:var(--surface2);border:1px solid var(--border);
+    color:var(--ink);border-radius:7px;padding:8px 10px;font-size:13px;width:100%;}
+  input[type=text]:focus, input[type=number]:focus, input[type=date]:focus{outline:none;border-color:var(--primary);}
+  table{width:100%;border-collapse:collapse;margin-top:10px;}
+  th{text-align:left;font-size:11px;font-weight:700;color:var(--muted);padding-bottom:8px;
+    border-bottom:1px solid var(--border);}
+  td{padding:8px 0;vertical-align:middle;}
+
+  /* ---------- mapped-columns list: each row is its own independent grid "card",
+     not a shared table row — so one row's drawer opening never affects another's
+     alignment. Header and every row share the same grid-template-columns. ---------- */
+  .col-grid-template{grid-template-columns:60px 190px 220px 160px 150px 64px;}
+  .col-row-head{display:grid;gap:16px;font-size:11px;font-weight:700;color:var(--muted);
+    padding:0 14px 8px;border:1px solid transparent;border-bottom:1px solid var(--border);margin-bottom:8px;box-sizing:border-box;}
+  .col-row-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;
+    margin-bottom:10px;background:var(--surface2);}
+  .col-row{display:grid;gap:16px;align-items:center;}
+  .col-letter{color:var(--sub);font-family:monospace;}
+  .col-sample{color:var(--muted);font-family:monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .col-drawer{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  select.type-select{background:var(--surface2);border:1px solid var(--border);color:var(--ink);
+    border-radius:6px;padding:7px 10px;font-size:13px;width:100%;}
+  .remove-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;}
+  .remove-btn:hover{color:var(--bad);}
+  .small-btn{background:none;border:1px solid var(--border2);color:var(--sub);border-radius:7px;
+    padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-top:14px;}
+  .small-btn:hover{color:var(--ink);border-color:var(--sub);}
+  .join-note{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:12px;}
+  .join-note b{color:var(--sub);font-size:11px;letter-spacing:.03em;}
+  .pill-row{display:flex;gap:10px;margin-bottom:8px;}
+  .pill{padding:9px 22px;border-radius:17px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--border2);
+    background:transparent;color:var(--sub);}
+  /* radio-style "pick one of N" (Week Start, etc) — light-touch Green so the
+     selected option is unambiguous without a loud fill; not Blue, and no longer
+     shared with any on/off toggle now that those are all switches */
+  .pill.active{background:var(--good-soft);border:1px solid var(--good);color:var(--good);}
+  .kpi-config-row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:10px 16px;margin-bottom:8px;}
+  .kpi-config-row.inactive{background:var(--bg);}
+  .kpi-config-row .move{display:flex;flex-direction:column;gap:2px;}
+  .kpi-config-row .move button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0;line-height:1;}
+  .kpi-config-row .move button:hover{color:var(--ink);}
+  .kpi-config-row .name{flex:1;}
+  .kpi-config-row .name .n{font-weight:700;font-size:13px;}
+  .kpi-config-row .name .d{font-size:11px;color:var(--muted);}
+  .save-bar{display:flex;justify-content:flex-end;margin-top:30px;}
+  .save-msg{font-size:12px;color:var(--good);align-self:center;margin-right:14px;opacity:0;transition:.2s;} /* confirmation state */
+  .save-msg.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <img src="data:image/png;base64,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" id="brand-logo" alt="Trim"/>
+      <div class="txt">
+        <p class="date" id="hdr-date">Wednesday, July 1</p>
+        <p class="tag">Cut the noise. Trust the trend.</p>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="weeknav">
+        <button onclick="shiftWeek(-1)">‹</button>
+        <span id="week-range">Jun 29 – Jul 5</span>
+        <button onclick="shiftWeek(1)">›</button>
+      </div>
+      <button id="coach-export-btn" class="btn btn-agentic-outline" onclick="openAnalyzeWeek();">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>Analyze Week
+      </button>
+      <button class="gear" id="gear-btn" onclick="toggleSettings()" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09A1.65 1.65 0 0019.4 15z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="dashboard-view">
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <div class="card trend-card">
+      <div class="trend-head">
+        <div>
+          <div class="label">Weight · <span id="trend-weeks"></span></div>
+          <div style="margin-top:8px;">
+            <span class="trend-num" id="trend-avg"></span>
+            <span class="trend-num-sub">lb · avg last 4 wks</span>
+          </div>
+        </div>
+        <div class="badge" id="trend-badge"></div>
+      </div>
+      <div class="overlay-controls">
+        <label class="switch"><input type="checkbox" id="overlay-toggle" onchange="renderChart()"><span class="slider"></span></label>
+        <span>Show comparison signal</span>
+        <select id="overlay-metric" onchange="renderChart()"></select>
+      </div>
+      <svg id="chart-svg" width="100%" height="260" viewBox="0 0 1270 260" style="overflow:visible;"></svg>
+    </div>
+
+    <div class="card targets-card">
+      <div class="targets-head">
+        <div class="label">Weekly Goal Compliance</div>
+        <div class="sub" id="targets-note"></div>
+      </div>
+      <div class="targets-grid" id="targets-grid"></div>
+    </div>
+
+    <div class="card coach-card">
+      <div class="coach-head">
+        <div class="coach-plus">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div> Weekly Focus
+        <button class="btn" id="coach-details-btn" style="margin-left:auto;padding:6px 14px;font-size:12px;display:none;color:var(--purple-hover);" onclick="showCoachDetails()">Coach Details</button>
+      </div>
+      <div class="coach-body" id="coach-body">No analysis yet — run one from "Analyze Week."</div>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS ================= -->
+  <div id="settings-view">
+    <div class="settings-tabs" id="settings-tabs"></div>
+
+    <div id="settings-tab-data" class="settings-tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="label section-title" style="margin:0;">Data sources</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="sub" id="refresh-status"></span>
+          <button class="btn" onclick="showDataView()" title="Raw data diagnostics">Verify Data</button>
+          <button class="btn" onclick="manualRefresh()">⟳ Refresh Data</button>
+        </div>
+      </div>
+      <div class="sub section-desc">Add a sheet, name it whatever makes sense to you, and map its columns. Add as many as you need.</div>
+      <div class="req-note">One mapped column across all sources must be Typed as Weight — it powers the dashboard trend + KPIs. Type is independent of what you name the column.</div>
+
+      <div id="sources-list"></div>
+      <button class="small-btn" onclick="addSource()">+ Add data source</button>
+
+      <div class="join-note">
+        <b>HOW SOURCES COMBINE</b><br><br>
+        Every date-typed column can be marked "Join column" — do this once per source. The join anchor's join column sets the master date sequence that appears on the dashboard; every other source's join column is matched against those dates by value, not by name, so it's fine if one sheet calls it "Date" and another calls it "Day" or "Timestamp." Missing days show as blank, not dropped.
+      </div>
+    </div>
+
+    <div id="settings-tab-display" class="settings-tab-content" style="display:none;">
+      <div id="settings-display-locked" style="display:none;padding:50px 20px;text-align:center;">
+        <div class="sub" style="font-size:13px;margin-bottom:16px;">Map and save at least one data source first — Display configuration needs real columns to choose from.</div>
+        <button class="btn" onclick="switchSettingsTab('data')">Go to Data</button>
+      </div>
+      <div id="settings-display-real">
+        <div class="label section-title" style="margin-top:0;">Week start</div>
+        <div class="sub section-desc">Controls how "this week" and target fractions (N/7) are calculated.</div>
+        <div class="pill-row" id="week-start-pills"></div>
+
+        <div class="label section-title">Dashboard KPIs</div>
+        <div class="sub section-desc">Built from whatever's mapped in your sources — pick a field, an operation, a period, and label it however you like. Aim for 3–5 on the dashboard.</div>
+        <div class="sub section-desc">1 Week and 4 Weeks always compare against the same-length block of complete weeks immediately before — 4 Weeks means the prior 4 weeks (weeks 5–8 relative to what's selected), never a calendar month. Both follow the dashboard's week toggle.</div>
+        <div class="sub" id="kpi-count-note" style="margin-bottom:12px;"></div>
+        <div id="kpi-config-list"></div>
+        <button class="small-btn" onclick="addKPI()">+ Add metric</button>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:36px;">
+          <div class="label section-title" style="margin:0;">Y/N Daily Goal</div>
+          <label class="switch"><input type="checkbox" id="goals-enabled-toggle" onchange="toggleGoalsEnabled()"><span class="slider"></span></label>
+        </div>
+        <div class="sub section-desc">Every column mapped as Y/N Daily Goal shows up here. Toggle which ones actually appear on the dashboard's daily goal band.</div>
+        <div class="sub" style="margin-bottom:12px;">Off hides the "Weekly Goal Compliance" card on the dashboard — flip this if you don't track daily Yes/No goals.</div>
+        <div id="goal-pills-list"></div>
+      </div>
+    </div>
+
+    <div id="settings-tab-user-profile" class="settings-tab-content" style="display:none;">
+      <div class="label section-title" style="margin-top:0;">User Profile</div>
+      <div class="sub section-desc">Facts about you — essentially one-time. Every field is optional; anything left blank is left out, not guessed at.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:16px;">
+        <div class="source-field">
+          <span class="fieldlabel">DATE OF BIRTH</span>
+          <input type="date" id="cp-dob" oninput="updateCoachProfile('dob',this.value)"/>
+        </div>
+        <div class="source-field">
+          <span class="fieldlabel">HEIGHT</span>
+          <input type="text" id="cp-height" placeholder="e.g. 6'0&quot;" oninput="updateCoachProfile('height',this.value)"/>
+        </div>
+        <div class="source-field">
+          <span class="fieldlabel">PROGRAM START DATE</span>
+          <input type="date" id="cp-programStartDate" oninput="updateCoachProfile('programStartDate',this.value)"/>
+        </div>
+        <div class="source-field">
+          <span class="fieldlabel">STARTING WEIGHT</span>
+          <input type="number" id="cp-startingWeight" oninput="updateCoachProfile('startingWeight',this.value)"/>
+        </div>
+        <div class="source-field">
+          <span class="fieldlabel">GOAL WEIGHT</span>
+          <input type="number" id="cp-goalWeight" oninput="updateCoachProfile('goalWeight',this.value)"/>
+        </div>
+      </div>
+    </div>
+
+    <div id="settings-tab-program-profile" class="settings-tab-content" style="display:none;">
+      <div class="label section-title" style="margin-top:0;">Program Profile</div>
+      <div class="sub section-desc">The program's current calibrations — likely the tab you'll revisit most, as targets and context shift over time.</div>
+
+      <div class="source-field" style="margin-bottom:16px;">
+        <span class="fieldlabel">PROGRAM HISTORY / CONTEXT</span>
+        <textarea id="cp-programHistory" placeholder="e.g. Started Dec 2024 around 232 lbs, cut to ~200 by mid-2025, regained some after a vacation, since working back down. Goal is primarily for health, not aesthetics."
+          style="min-height:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;padding:10px;"
+          oninput="updateCoachProfile('programHistory',this.value)"></textarea>
+      </div>
+
+      <div class="source-field" style="margin-bottom:16px;">
+        <span class="fieldlabel">TARGETS &amp; THRESHOLDS</span>
+        <div class="sub" style="margin-bottom:6px;">Whatever you track, in your own words — read as-is by the coach, nothing here is parsed or validated.</div>
+        <textarea id="cp-targetsAndThresholds" placeholder="e.g. Steps: aim for ~12,000/day — don't push higher just to fix the scale. Protein: 90g floor, 100g ideal; flag if under 70g for multiple days. Calories: 1400–1500 target, never below 1300. Workouts: 4+/week, 2 minimum."
+          style="min-height:110px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;padding:10px;"
+          oninput="updateCoachProfile('targetsAndThresholds',this.value)"></textarea>
+      </div>
+    </div>
+
+    <div class="save-bar">
+      <span class="save-msg" id="save-msg">Saved</span>
+      <button class="btn btn-primary" onclick="saveConfig()">Save changes</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ========================================================================
+   MOCK DATA — stands in for real Google Sheets rows until the fetch layer
+   is wired up. Shape matches exactly what the column mapper would produce.
+   ======================================================================== */
+function generateMockData(days, todayRef){
+  const out = [];
+  let weight = 192;
+  const today = todayRef;
+  for(let i=days-1;i>=0;i--){
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    const progress = (days-i)/days;
+    const plateauZone = i < 28;
+    const drift = plateauZone ? (Math.random()-0.5)*0.6 : -0.055 - Math.random()*0.03;
+    weight = Math.max(184, weight + drift);
+    const stress = Math.round((4 + Math.sin(i/9)*2 + (Math.random()-0.5)*2)*10)/10;
+    const steps = Math.round(9000 + Math.random()*5000);
+    out.push({
+      date: d.toISOString().slice(0,10),
+      weight: Math.round(weight*10)/10,
+      calories: Math.round(1250+Math.random()*250),
+      protein: Math.round(55+Math.random()*45),
+      steps: steps,
+      stress: Math.min(10,Math.max(1,stress)),
+      stepsGoal: steps >= 10000,
+      proteinGoal: (55+Math.random()*45) >= 80,
+      caloriesGoal: Math.random() > 0.08,
+      weighIn: true,
+      notes: ""
+    });
+  }
+  return out;
+}
+const TODAY = new Date(); // real local system date — drives header, week math, targets
+let DATA = generateMockData(16*7, TODAY);
+let dataSourceMode = 'mock'; // 'mock' | 'live' — surfaced in the Data debug view
+
+/* ========================================================================
+   STATE — persisted via window.storage
+   ======================================================================== */
+let state = {
+  sources: [
+    { name: "", url: "", startRow: 2, headerRow: null, isAnchor: true, columns: [] }
+  ],
+  weekStart: "Sunday",
+  kpiConfig: [
+    {id:"k1", label:"Total Steps", field:"Steps", op:"sum", period:"all", active:true},
+    {id:"k2", label:"Weekly Avg Steps", field:"Steps", op:"avg", period:"week", active:true},
+    {id:"k3", label:"Logging Streak", field:null, op:"streak_logged", period:"all", active:true},
+    {id:"k4", label:"Days Logged", field:null, op:"count_logged", period:"all", active:true},
+    {id:"k5", label:"Avg. Stress", field:"Stress", op:"avg", period:"week", active:false}
+  ],
+  weekOffset: 0,
+  goalsEnabled: true,
+  coachProfile: {
+    dob: "", height: "", programStartDate: "", startingWeight: "", goalWeight: "",
+    programHistory: "", targetsAndThresholds: ""
+  }
+};
+
+/* All fields currently mapped across sources, by type — drives KPI field picker */
+function allMappedFields(){
+  const seen = {};
+  state.sources.forEach(src=>{
+    (src.columns||[]).forEach(c=>{
+      if(!c || c.type==='Date') return;
+      seen[c.field] = c.type;
+    });
+  });
+  return seen;
+}
+// (no label-to-key translation needed here — KPI records carry the exact
+// label the user typed as their own key, since that's what the dropdown selects)
+
+const OPS_NUMBER = [
+  {v:"sum", t:"Sum"},
+  {v:"avg", t:"Average"},
+  {v:"running_total", t:"Running Sum"},
+];
+const OPS_STRUCTURAL = [ // no field needed — about the data itself
+  {v:"count_logged", t:"Days logged"},
+  {v:"streak_logged", t:"Logging streak"},
+];
+const PERIODS = [
+  {v:"all", t:"All Time"},
+  {v:"week", t:"1 Week"},
+  {v:"4week", t:"4 Weeks"},
+];
+
+async function loadState(){
+  try{
+    const res = await fetch(`${PROXY_BASE}/config`);
+    if(res.ok){
+      const saved = await res.json();
+      if(saved) state = Object.assign(state, saved);
+    }
+  }catch(e){ /* no server / no saved config yet — use defaults */ }
+
+  // self-heal: strip any null holes left over from a previously-corrupted save
+  // (sparse array entries become literal `null` once serialized through JSON)
+  state.sources.forEach(src=>{
+    if(Array.isArray(src.columns)) src.columns = src.columns.filter(c=>c);
+
+    // self-heal: configs saved before explicit join columns existed have Date
+    // columns with no isJoinKey set — default to the first one, matching the
+    // old implicit behavior, so nothing changes for an existing config on load
+    const dateCols = src.columns.filter(c=>c.type==='Date');
+    if(dateCols.length && !dateCols.some(c=>c.isJoinKey)) dateCols[0].isJoinKey = true;
+
+    // self-heal: grandfather in Y/N Daily Goal columns that already existed before
+    // explicit Yes/No mapping was required — they were already relying on the old
+    // "starts with y" heuristic successfully, so don't suddenly block Save over them.
+    // Only a column you newly set to Y/N Daily Goal during this session starts unmapped.
+    src.columns.forEach(c=>{
+      if(c.type==='Y/N Daily Goal' && !c._mappingConfirmed) c._mappingConfirmed = true;
+    });
+  });
+
+  // self-heal: configs saved before the weekly-lens redesign have KPI periods in
+  // rolling-day-window terms — map them onto their direct week-based replacements
+  state.kpiConfig.forEach(k=>{
+    if(k.period==='7d') k.period = 'week';
+    if(k.period==='30d') k.period = '4week';
+  });
+
+  // self-heal: configs saved before Age became Date of Birth carry a stale `age`
+  // key with no way to derive an exact DOB from it — drop it and let dob start
+  // blank rather than resave a field that no longer means anything.
+  if(state.coachProfile && 'age' in state.coachProfile) delete state.coachProfile.age;
+
+  // Always open on the most recently *completed* week, never wherever the toggle
+  // last happened to be left — "which week you're looking at" is browsing state,
+  // not a saved preference, and a stale prior position would misrepresent "now."
+  state.weekOffset = mostRecentCompleteWeekOffset();
+}
+
+async function saveConfig(){
+  const unmapped = [];
+  state.sources.forEach(src=>{
+    (src.columns||[]).forEach(c=>{
+      if(c && c.type==='Y/N Daily Goal' && !c._mappingConfirmed) unmapped.push(`${src.name || '(unnamed source)'} → ${c.field}`);
+    });
+  });
+  if(unmapped.length){
+    alert(`Confirm the Yes/No mapping before saving:\n\n${unmapped.join('\n')}\n\nOpen Data sources, review the detected values for each, and click "Save mapping."`);
+    return;
+  }
+
+  try{
+    await fetch(`${PROXY_BASE}/config`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(state)
+    });
+    const msg = document.getElementById('save-msg');
+    msg.classList.add('show');
+    setTimeout(()=>msg.classList.remove('show'), 1800);
+  }catch(e){ console.error('save failed', e); }
+  await refreshDataOnServer();
+  renderAll();
+}
+
+/* ========================================================================
+   VIEW TOGGLE
+   ======================================================================== */
+function toggleSettings(){
+  const dash = document.getElementById('dashboard-view');
+  const set = document.getElementById('settings-view');
+  const gear = document.getElementById('gear-btn');
+  const showingSettings = set.style.display === 'block';
+  dash.style.display = showingSettings ? 'block' : 'none';
+  set.style.display = showingSettings ? 'none' : 'block';
+  gear.classList.toggle('active', !showingSettings);
+}
+
+/* ========================================================================
+   SETTINGS TABS
+   Data-driven so a future tab (e.g. a Coach Profile tone tab) is just
+   another entry in this list — no per-tab logic to rewrite.
+   ======================================================================== */
+const SETTINGS_TABS = [
+  { id:'data', label:'Data' },
+  { id:'display', label:'Display' },
+  { id:'user-profile', label:'User Profile' },
+  { id:'program-profile', label:'Program Profile' }
+];
+let activeSettingsTab = 'data';
+
+function savedSourcesHaveMapping(){
+  return (state.sources||[]).some(src => (src.columns||[]).filter(c=>c).length > 0);
+}
+
+function switchSettingsTab(id){
+  activeSettingsTab = id;
+  renderSettingsTabs();
+}
+
+function renderSettingsTabs(){
+  const nav = document.getElementById('settings-tabs');
+  if(!nav) return;
+  const displayLocked = !savedSourcesHaveMapping();
+
+  nav.innerHTML = SETTINGS_TABS.map(t=>{
+    const locked = t.id==='display' && displayLocked;
+    const active = t.id===activeSettingsTab;
+    return `<button type="button" class="settings-tab-btn${active?' active':''}${locked?' locked':''}"
+      onclick="switchSettingsTab('${t.id}')" ${locked?'title="Map and save a data source first"':''}>${t.label}</button>`;
+  }).join('');
+
+  SETTINGS_TABS.forEach(t=>{
+    const el = document.getElementById(`settings-tab-${t.id}`);
+    if(el) el.style.display = t.id===activeSettingsTab ? 'block' : 'none';
+  });
+
+  const lockedPane = document.getElementById('settings-display-locked');
+  const realPane = document.getElementById('settings-display-real');
+  if(lockedPane && realPane){
+    lockedPane.style.display = displayLocked ? 'block' : 'none';
+    realPane.style.display = displayLocked ? 'none' : 'block';
+  }
+}
+
+/* ========================================================================
+   DATE / WEEK HELPERS
+   ======================================================================== */
+function getWeekBounds(offsetWeeks){
+  const startsOn = state.weekStart === 'Sunday' ? 0 : 1;
+  const d = new Date(TODAY);
+  d.setDate(d.getDate() + offsetWeeks*7);
+  const day = d.getDay();
+  const diff = (day - startsOn + 7) % 7;
+  const start = new Date(d); start.setDate(d.getDate()-diff);
+  const end = new Date(start); end.setDate(start.getDate()+6);
+  return {start, end};
+}
+function fmtShort(d){ return d.toLocaleDateString('en-US',{month:'short', day:'numeric'}); }
+function daysElapsedInWeek(start){
+  const diffDays = Math.floor((TODAY - start)/86400000)+1;
+  return Math.min(7, Math.max(0, diffDays));
+}
+// offset 0 (the week containing today) only counts as "complete" if today IS that
+// week's last day — otherwise the most recently complete week is one step back
+function mostRecentCompleteWeekOffset(){
+  const {end} = getWeekBounds(0);
+  return normalizeDateKey(TODAY) >= normalizeDateKey(end) ? 0 : -1;
+}
+// Compares by date-KEY STRING, not raw Date objects — r.date is a plain "YYYY-MM-DD"
+// string (parsed as UTC midnight if ever turned back into a Date), while start/end
+// carry today's actual local time-of-day (inherited from `new Date(TODAY)` arithmetic
+// in getWeekBounds). Comparing those two kinds of Date directly is timezone-fragile:
+// in any timezone behind UTC, the range's own start boundary can end up excluding
+// itself. Reducing everything to date-key strings first sidesteps that entirely.
+function recordsInRange(start,end){
+  const startKey = normalizeDateKey(start);
+  const endKey = normalizeDateKey(end);
+  return DATA.filter(r=> r.date>=startKey && r.date<=endKey);
+}
+
+/* ========================================================================
+   KPI COMPUTATION
+   ======================================================================== */
+function normalizeDateKey(raw){
+  if(!raw) return null;
+  const d = new Date(raw);
+  if(isNaN(d)) return null;
+  // local date components, not .toISOString() (UTC) — this gets called on Date
+  // objects that carry a real local time-of-day (TODAY, week boundaries derived
+  // from it), and converting those to UTC first can silently roll the date
+  // backward or forward a day depending on timezone and time of day
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+// The real "as of" date for the selected week — its end date for any complete
+// (past) week, but never later than today for the current, still-in-progress
+// week. Aug 16 isn't a real cutoff on Aug 13 — today is.
+function effectiveWeekEnd(weekOffset){
+  const {end} = getWeekBounds(weekOffset);
+  return TODAY < end ? TODAY : end;
+}
+// "All Time" data, capped at the end of the selected week — a running position,
+// not a fixed window, so paging the toggle back shows where a total/streak/latest
+// stood as of that point, instead of silently staying anchored to today.
+function dataThroughSelectedWeek(){
+  const cutoff = normalizeDateKey(effectiveWeekEnd(state.weekOffset));
+  return DATA.filter(r=>r.date<=cutoff);
+}
+// Average over only the days a field actually has a real (non-null) value —
+// a blank cell is a day that wasn't logged, not a zero, and shouldn't dilute the mean.
+// Returns null (not 0 or NaN) when there's nothing real to average.
+function avgNonNull(recs, fkey){
+  const vals = recs.filter(r=>r[fkey]!==null && r[fkey]!==undefined).map(r=>r[fkey]);
+  if(vals.length===0) return null;
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+
+/* ========================================================================
+   WEEKLY BUCKETS — the single derived layer everything else reads from.
+   One generic row per calendar week (sum / non-null-sum / non-null-count for
+   every mapped Number+Weight field, an isComplete flag), computed fresh from
+   DATA whenever it loads — never persisted, never re-derived per-KPI-config,
+   so config changes (adding a KPI, switching its period) never touch this.
+   Indexed so buckets[i] === the week at weekOffset === -i (buckets[0] = the
+   week containing today, buckets[1] = last week, etc).
+   ======================================================================== */
+let WEEKLY_BUCKETS = [];
+function buildWeeklyBuckets(){
+  if(DATA.length===0) return [];
+  const earliestDate = new Date(DATA[0].date);
+  const weeksBack = Math.max(20, Math.ceil((TODAY - earliestDate) / (7*86400000)) + 2);
+  const fieldsToTrack = ['weight', ...fieldsOfType('Number')];
+
+  const buckets = [];
+  for(let i=0; i<=weeksBack; i++){
+    const offset = -i;
+    const {start, end} = getWeekBounds(offset);
+    const weekRecs = recordsInRange(start, end);
+    const isComplete = normalizeDateKey(TODAY) >= normalizeDateKey(end);
+
+    const fields = {};
+    fieldsToTrack.forEach(f=>{
+      const nonNullRecs = weekRecs.filter(r=>r[f]!==null && r[f]!==undefined);
+      fields[f] = {
+        sumTreatingNullAsZero: weekRecs.reduce((s,r)=>s+(r[f]||0),0), // for the 'sum' op
+        sumNonNull: nonNullRecs.reduce((s,r)=>s+r[f],0),              // for the 'avg' op numerator
+        nonNullCount: nonNullRecs.length                              // for the 'avg' op denominator
+      };
+    });
+
+    buckets.push({ offset, start, end, isComplete, recordCount: weekRecs.length, fields });
+  }
+  return buckets;
+}
+function getWeekBucket(offset){
+  return WEEKLY_BUCKETS[-offset] || null;
+}
+// which week-offsets make up a period's "current" / "prior" window, anchored at
+// whatever week is selected — this is what makes "current 4wk vs weeks 5-8 ago"
+// keep meaning the same thing regardless of where you've navigated
+function periodWindowOffsets(period, anchorOffset){
+  if(period==='week') return [anchorOffset];
+  if(period==='4week') return [anchorOffset, anchorOffset-1, anchorOffset-2, anchorOffset-3];
+  return null;
+}
+function priorPeriodWindowOffsets(period, anchorOffset){
+  if(period==='week') return [anchorOffset-1];
+  if(period==='4week') return [anchorOffset-4, anchorOffset-5, anchorOffset-6, anchorOffset-7];
+  return null;
+}
+// Combines whichever weeks are in a window into one value for the given op.
+// avg is a true mean across every real sample in the window (sum of sums / sum of
+// counts), never an average-of-weekly-averages, which would wrongly equal-weight
+// a sparse week against a fully-logged one.
+function bucketWindowValue(offsets, cfg){
+  const buckets = (offsets||[]).map(getWeekBucket).filter(b=>b);
+  if(buckets.length===0) return null;
+  const anyRecords = buckets.some(b=>b.recordCount>0);
+  if(!anyRecords) return null; // nothing logged anywhere in this window — not enough to show
+
+  const fkey = cfg.field;
+  if(cfg.op==='sum'){
+    return buckets.reduce((s,b)=> s + ((b.fields[fkey] && b.fields[fkey].sumTreatingNullAsZero) || 0), 0);
+  }
+  if(cfg.op==='avg'){
+    let sumNonNull=0, count=0;
+    buckets.forEach(b=>{
+      const f = b.fields[fkey];
+      if(f){ sumNonNull += f.sumNonNull; count += f.nonNullCount; }
+    });
+    return count>0 ? sumNonNull/count : null;
+  }
+  return null;
+}
+
+function computeKPI(cfg){
+  const fkey = cfg.field;
+
+  // gated on op too, not just period — a structural KPI (streak/count/running-total)
+  // can carry a leftover 'week'/'4week' period from before its op was switched to
+  // structural (switching op doesn't reset period), and structural ops always belong
+  // in the "All Time" branch below regardless of what period happens to be stored
+  if((cfg.period==='week' || cfg.period==='4week') && (cfg.op==='sum' || cfg.op==='avg')){
+    const offsets = periodWindowOffsets(cfg.period, state.weekOffset);
+    if(cfg.op==='sum'){
+      const total = bucketWindowValue(offsets, cfg);
+      return total===null ? '—' : fmtNumber(total);
+    }
+    if(cfg.op==='avg'){
+      const avg = bucketWindowValue(offsets, cfg);
+      if(avg===null) return '—';
+      if(avg >= 1000) return fmtNumber(avg);
+      if(avg >= 100) return Math.round(avg).toString();
+      return avg.toFixed(1);
+    }
+    return '—'; // week/4week only ever pair with sum/avg in the UI
+  }
+
+  // "All Time" (or a structural op, which ignores period entirely) — a running
+  // position, not a fixed window: uncapped at the start (full history), but capped
+  // at the end of whatever week is selected, same as everything else on the
+  // dashboard — so "Total Steps" as of a past week shows where you stood then,
+  // not silently today's true total while you're reviewing history.
+  const cap = dataThroughSelectedWeek();
+  switch(cfg.op){
+    case 'sum': {
+      const total = cap.reduce((s,r)=>s+(r[fkey]||0),0);
+      return fmtNumber(total);
+    }
+    case 'avg': {
+      const avg = avgNonNull(cap, fkey);
+      if(avg===null) return '—';
+      if(avg >= 1000) return fmtNumber(avg);
+      if(avg >= 100) return Math.round(avg).toString();
+      return avg.toFixed(1);
+    }
+    case 'running_total': {
+      const total = cap.reduce((s,r)=>s+(r[fkey]||0),0);
+      return fmtNumber(total);
+    }
+    case 'latest': {
+      const last = cap[cap.length-1];
+      return last ? (last[fkey] ?? '—') : '—';
+    }
+    case 'count_logged': return cap.length;
+    case 'streak_logged': {
+      // every row in DATA already means "weight was logged that day" — a streak
+      // is just how many of the most recent calendar days (as of the cap) are
+      // consecutively present
+      let streak=0;
+      let cursor = new Date(effectiveWeekEnd(state.weekOffset));
+      for(let i=cap.length-1;i>=0;i--){
+        if(cap[i].date === normalizeDateKey(cursor)){ streak++; cursor.setDate(cursor.getDate()-1); }
+        else break;
+      }
+      return streak;
+    }
+  }
+  return '—';
+}
+function fmtNumber(n){
+  const sign = n < 0 ? '-' : '';
+  n = Math.abs(n);
+  if(n >= 1e6) return sign + (n/1e6).toFixed(2) + 'M';
+  if(n >= 1e3) return sign + (n/1e3).toFixed(1) + 'k';
+  return sign + Math.round(n).toString();
+}
+
+/* ========================================================================
+   KPI PERIOD-OVER-PERIOD COMPARISON — only for "1 Week"/"4 Weeks", never "All
+   Time" (no sane baseline) and never structural ops. Comparison window is the
+   immediately preceding, equal-length, non-overlapping block of complete weeks,
+   anchored to whatever week is currently selected via the toggle. If the
+   selected week is the in-progress current week (weekOffset===0), there is no
+   comparison at all — just how far into it we are — since a partial week can
+   only ever look artificially behind a complete one, regardless of how it's
+   actually going.
+   ======================================================================== */
+function computeKPIComparison(cfg){
+  if(cfg.period!=='week' && cfg.period!=='4week') return null;
+  if(cfg.op!=='sum' && cfg.op!=='avg') return null;
+
+  if(state.weekOffset===0){
+    return { incomplete:true, daysElapsed: daysElapsedInWeek(getWeekBounds(0).start) };
+  }
+
+  const currentVal = bucketWindowValue(periodWindowOffsets(cfg.period, state.weekOffset), cfg);
+  const priorVal = bucketWindowValue(priorPeriodWindowOffsets(cfg.period, state.weekOffset), cfg);
+  if(currentVal===null || priorVal===null || priorVal===0) return null; // can't divide, or not enough history
+
+  const pctChange = ((currentVal - priorVal) / Math.abs(priorVal)) * 100;
+  const higherIsBetter = cfg.higherIsBetter !== false; // default true
+  const isGood = higherIsBetter ? pctChange >= 0 : pctChange <= 0;
+  return { incomplete:false, pctChange, isGood };
+}
+
+/* ========================================================================
+   RENDER: KPI ROW
+   ======================================================================== */
+function renderKPIRow(){
+  const active = state.kpiConfig.filter(k=>k.active);
+  const row = document.getElementById('kpi-row');
+  const periodsWithLabels = Object.fromEntries(PERIODS.map(p=>[p.v,p.t]));
+  // same guard as computeKPI — only sum/avg ever actually route through the bucketed
+  // "1 Week"/"4 Weeks" path, regardless of what a structural KPI's period happens to be
+  const throughDate = fmtShort(effectiveWeekEnd(state.weekOffset));
+
+  row.innerHTML = active.map(k=>{
+    const val = computeKPI(k);
+    const isBucketed = (k.period==='week' || k.period==='4week') && (k.op==='sum' || k.op==='avg');
+    const title = isBucketed ? `${k.label} (${periodsWithLabels[k.period]})` : k.label;
+
+    let sub = '';
+    if(isBucketed){
+      const comparison = computeKPIComparison(k);
+      if(comparison && comparison.incomplete){
+        sub = `<div class="kpisub">Week in progress — day ${comparison.daysElapsed} of 7</div>`;
+      } else if(comparison){
+        const arrow = comparison.pctChange >= 0 ? '↑' : '↓';
+        sub = `<div class="kpisub ${comparison.isGood?'kpi-good':'kpi-bad'}">${arrow} ${Math.abs(comparison.pctChange).toFixed(1)}% vs. Prev Period</div>`;
+      }
+      // no comparison (not enough history, or nothing to divide by) — go quiet, no line at all
+    } else {
+      // "All Time," any op — now a running position capped at the selected week,
+      // so it's worth always naming what it's actually as-of
+      sub = `<div class="kpisub">All Time · through ${throughDate}</div>`;
+    }
+
+    return `<div class="kpi-card">
+      <div class="label">${title}</div>
+      <div class="val">${val}</div>
+      ${sub}
+    </div>`;
+  }).join('');
+}
+
+/* ========================================================================
+   RENDER: TREND CHART (SVG, area glow + optional dual-axis overlay)
+   ======================================================================== */
+// Trailing 16 calendar weeks, reading the same bucket array everything else uses —
+// this is the one view that intentionally ignores the toggle (a period-over-time
+// shape, not a this-week-vs-that-week snapshot), so it always ends at today's week,
+// including a partial in-progress point for the current week if there's real data in it.
+function weeklyAverages(field){
+  const weeks = [];
+  for(let i=15; i>=0; i--){
+    const b = getWeekBucket(-i);
+    if(!b) continue;
+    const f = b.fields[field];
+    if(!f || f.nonNullCount===0) continue;
+    weeks.push(f.sumNonNull / f.nonNullCount);
+  }
+  return weeks;
+}
+
+function renderChart(){
+  const weightWeeks = weeklyAverages('weight');
+  const last4 = weightWeeks.slice(-4);
+  const avgLast4 = (last4.reduce((a,b)=>a+b,0)/last4.length).toFixed(1);
+  const totalChange = (weightWeeks[0]-weightWeeks[weightWeeks.length-1]).toFixed(1);
+
+  document.getElementById('trend-weeks').textContent = weightWeeks.length + ' weeks';
+  document.getElementById('trend-avg').textContent = avgLast4;
+  document.getElementById('trend-badge').textContent =
+    (totalChange>=0?'Down ':'Up ') + Math.abs(totalChange) + ' lb total';
+
+  // comparison metric options — any mapped Number field, dynamically, using its real label
+  const overlaySelect = document.getElementById('overlay-metric');
+  const numberFields = fieldsOfType('Number');
+  const prevSelection = overlaySelect.value;
+  overlaySelect.innerHTML = numberFields.map(f=>`<option value="${f}">${f}</option>`).join('');
+  if(numberFields.includes(prevSelection)) overlaySelect.value = prevSelection;
+
+  const W=1270,H=260, padL=6, padR=6, padT=10, padB=10;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const min=Math.min(...weightWeeks), max=Math.max(...weightWeeks);
+  const range = (max-min)||1;
+  const pts = weightWeeks.map((v,i)=>{
+    const x = padL + plotW*(i/(weightWeeks.length-1));
+    const y = padT + plotH*(1-((v-min)/range*0.82+0.09));
+    return [x,y];
+  });
+  const linePath = pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  // area fill attaches directly to the line, fading out beneath it — true area-chart shading
+  const areaPath = linePath
+    + ` L${pts[pts.length-1][0].toFixed(1)},${H} L${pts[0][0].toFixed(1)},${H} Z`;
+
+  let overlaySvg = '';
+  const overlayOn = document.getElementById('overlay-toggle').checked;
+  if(overlayOn){
+    const metricKey = document.getElementById('overlay-metric').value;
+    const overlayWeeks = weeklyAverages(metricKey);
+    const omin=Math.min(...overlayWeeks), omax=Math.max(...overlayWeeks);
+    const orange = (omax-omin)||1;
+    const opts = overlayWeeks.map((v,i)=>{
+      const x = padL + plotW*(i/(overlayWeeks.length-1));
+      const y = padT + plotH*(1-((v-omin)/orange*0.7+0.12));
+      return [x,y];
+    });
+    const overlayPath = opts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const overlayAreaPath = overlayPath + ` L${opts[opts.length-1][0].toFixed(1)},${H} L${opts[0][0].toFixed(1)},${H} Z`;
+    overlaySvg = `<path d="${overlayAreaPath}" fill="url(#areaGradOrange)"/>
+      <path d="${overlayPath}" fill="none" stroke="#FF9A3C" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="${opts[opts.length-1][0]}" cy="${opts[opts.length-1][1]}" r="4" fill="#FF9A3C"/>`;
+  }
+
+  const svg = document.getElementById('chart-svg');
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#4C8DFF" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#4C8DFF" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="areaGradOrange" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FF9A3C" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#FF9A3C" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaPath}" fill="url(#areaGrad)"/>
+    <path d="${linePath}" fill="none" stroke="#4C8DFF" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="4.5" fill="#4C8DFF"/>
+    ${overlaySvg}
+  `;
+}
+
+/* ========================================================================
+   RENDER: THIS WEEK'S TARGETS (date-aware, partial-week N/M)
+   ======================================================================== */
+function allGoalColumns(){
+  // every column typed as Y/N Daily Goal, across every source, with a back-reference for toggling
+  const out = [];
+  state.sources.forEach((src, si)=>{
+    (src.columns||[]).forEach((c, ci)=>{
+      if(c && c.type==='Y/N Daily Goal') out.push({ si, ci, field: c.field, visible: c.goalVisible!==false });
+    });
+  });
+  return out;
+}
+function activeGoalFields(){
+  return allGoalColumns().filter(g=>g.visible).map(g=>g.field);
+}
+function renderGoalPills(){
+  document.getElementById('goals-enabled-toggle').checked = !!state.goalsEnabled;
+
+  const el = document.getElementById('goal-pills-list');
+  const goals = allGoalColumns();
+  if(goals.length===0){
+    el.innerHTML = `<div class="sub">No Y/N Daily Goal columns mapped yet.</div>`;
+    return;
+  }
+  // switches, not pills — same on/off pattern as KPI active-toggle and the
+  // enable-goals toggle above, instead of a third visual language for on/off
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">` + goals.map(g=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;">
+      <span style="font-size:13px;font-weight:700;">${g.field}</span>
+      <label class="switch"><input type="checkbox" ${g.visible?'checked':''} onchange="toggleGoalVisible(${g.si},${g.ci})"><span class="slider"></span></label>
+    </div>
+  `).join('') + `</div>`;
+}
+function toggleGoalsEnabled(){
+  state.goalsEnabled = document.getElementById('goals-enabled-toggle').checked;
+  renderTargets();
+}
+const COACH_PROFILE_FIELDS = ['dob','height','programStartDate','startingWeight','goalWeight','programHistory','targetsAndThresholds'];
+function renderCoachProfile(){
+  COACH_PROFILE_FIELDS.forEach(f=>{
+    const el = document.getElementById('cp-'+f);
+    if(el) el.value = state.coachProfile[f] || '';
+  });
+}
+function updateCoachProfile(field, val){
+  state.coachProfile[field] = val; // text inputs — no re-render, avoids losing focus mid-keystroke
+}
+
+/* ========================================================================
+   COACH RECOMMENDATIONS — rolling history, one entry per assessed week,
+   sorted server-side by weekStart. "Latest" always means chronologically
+   most recent week assessed, not whichever analysis was run most recently —
+   matters if you ever go back and analyze an older week after a newer one
+   already has an entry.
+   ======================================================================== */
+let RECOMMENDATIONS = [];
+async function loadRecommendations(){
+  try{
+    const res = await fetch(`${PROXY_BASE}/recommendations`);
+    if(res.ok) RECOMMENDATIONS = await res.json();
+  }catch(e){ /* server not reachable — keep whatever we had */ }
+}
+function findRecommendationForWeek(weekStartKey){
+  return RECOMMENDATIONS.find(r=>r.weekStart===weekStartKey) || null;
+}
+// The Weekly Focus card follows the same week selector as everything else on the
+// dashboard — it shows the analysis for whatever week is currently selected, not
+// just whichever analysis happens to be newest, so paging back through history
+// actually shows that week's own coaching, not a stale "latest" stuck in place.
+function currentWeekRecommendation(){
+  const {start} = getWeekBounds(state.weekOffset);
+  return findRecommendationForWeek(normalizeDateKey(start));
+}
+function renderCoachCard(){
+  const body = document.getElementById('coach-body');
+  const detailsBtn = document.getElementById('coach-details-btn');
+  const rec = currentWeekRecommendation();
+  if(!rec){
+    body.textContent = RECOMMENDATIONS.length
+      ? 'No analysis for this week — run one from "Analyze Week," or browse to a week that already has one.'
+      : 'No analysis yet — run one from "Analyze Week."';
+    detailsBtn.style.display = 'none';
+    return;
+  }
+  detailsBtn.style.display = '';
+  body.innerHTML = `<div style="margin-bottom:6px;color:var(--sub);font-size:12px;">Week of ${fmtShort(new Date(rec.weekStart+'T00:00:00'))} – ${fmtShort(new Date(rec.weekEnd+'T00:00:00'))}</div>${rec.recommendation}`;
+}
+// Minimal markdown-to-HTML — headers, bold/italic/code, bullet & numbered lists,
+// blockquotes, horizontal rules, and pipe tables. Covers what Claude's report output
+// actually uses; not a general-purpose parser. No external library — this app doesn't
+// load anything from a CDN anywhere else, and this is a small, bounded amount of markup.
+function mdInline(text){
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+function renderMarkdown(md){
+  if(!md) return '';
+  const lines = md.replace(/\r\n/g,'\n').split('\n');
+  let html = '', inList = null, i = 0;
+  const closeList = () => { if(inList){ html += `</${inList}>`; inList = null; } };
+
+  while(i < lines.length){
+    const line = lines[i];
+
+    if(/^\s*\|.+\|\s*$/.test(line) && lines[i+1] && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i+1])){
+      closeList();
+      const head = line.trim().slice(1,-1).split('|').map(c=>c.trim());
+      html += '<table class="report-table"><thead><tr>' + head.map(c=>`<th>${mdInline(c)}</th>`).join('') + '</tr></thead><tbody>';
+      i += 2;
+      while(i < lines.length && /^\s*\|.+\|\s*$/.test(lines[i])){
+        const cells = lines[i].trim().slice(1,-1).split('|').map(c=>c.trim());
+        html += '<tr>' + cells.map(c=>`<td>${mdInline(c)}</td>`).join('') + '</tr>';
+        i++;
+      }
+      html += '</tbody></table>';
+      continue;
+    }
+
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ closeList(); const lvl = Math.min(h[1].length+1, 5); html += `<h${lvl} class="report-h">${mdInline(h[2])}</h${lvl}>`; i++; continue; }
+
+    if(/^\s*---+\s*$/.test(line)){ closeList(); html += '<hr class="report-hr">'; i++; continue; }
+
+    const q = line.match(/^\s*>\s?(.*)$/);
+    if(q){ closeList(); html += `<blockquote class="report-quote">${mdInline(q[1])}</blockquote>`; i++; continue; }
+
+    const ul = line.match(/^\s*[-*]\s+(.*)$/);
+    if(ul){ if(inList!=='ul'){ closeList(); html+='<ul class="report-list">'; inList='ul'; } html += `<li>${mdInline(ul[1])}</li>`; i++; continue; }
+
+    const ol = line.match(/^\s*\d+\.\s+(.*)$/);
+    if(ol){ if(inList!=='ol'){ closeList(); html+='<ol class="report-list">'; inList='ol'; } html += `<li>${mdInline(ol[1])}</li>`; i++; continue; }
+
+    if(/^\s*$/.test(line)){ closeList(); i++; continue; }
+
+    closeList();
+    const para = [line]; i++;
+    while(i<lines.length && !/^\s*$/.test(lines[i]) && !/^#{1,4}\s+/.test(lines[i]) && !/^\s*[-*]\s+/.test(lines[i])
+      && !/^\s*\d+\.\s+/.test(lines[i]) && !/^\s*---+\s*$/.test(lines[i]) && !/^\s*>\s?/.test(lines[i]) && !/^\s*\|.+\|\s*$/.test(lines[i])){
+      para.push(lines[i]); i++;
+    }
+    html += `<p class="report-p">${mdInline(para.join(' '))}</p>`;
+  }
+  closeList();
+  return html;
+}
+function showCoachDetails(){
+  const rec = currentWeekRecommendation();
+  if(!rec) return;
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;width:760px;max-width:90vw;max-height:85vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div class="label" style="color:var(--purple-hover);">Coach Details — week of ${fmtShort(new Date(rec.weekStart+'T00:00:00'))} – ${fmtShort(new Date(rec.weekEnd+'T00:00:00'))}</div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--sub);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      <div class="report-verdict">${mdInline(rec.verdict)}</div>
+      <div class="report-reco"><span class="fieldlabel">RECOMMENDATION</span>${mdInline(rec.recommendation)}</div>
+      <hr class="report-hr">
+      ${renderMarkdown(rec.fullReport)}
+    </div>`;
+  document.body.appendChild(modal);
+}
+function toggleGoalVisible(si,ci){
+  const col = state.sources[si].columns[ci];
+  col.goalVisible = col.goalVisible===false ? true : false;
+  renderGoalPills();
+  renderTargets();
+}
+function renderTargets(){
+  document.querySelector('.targets-card').style.display = state.goalsEnabled ? '' : 'none';
+
+  const {start,end} = getWeekBounds(state.weekOffset);
+  const elapsed = daysElapsedInWeek(start);
+  const recs = recordsInRange(start, TODAY < end ? TODAY : end);
+
+  document.getElementById('week-range').textContent = fmtShort(start)+' – '+fmtShort(end);
+  document.getElementById('targets-note').textContent =
+    `week starts ${state.weekStart} · ${elapsed} of 7 days elapsed`;
+
+  const goalFields = activeGoalFields();
+  const grid = document.getElementById('targets-grid');
+
+  if(goalFields.length===0){
+    grid.innerHTML = `<div class="sub">No weekly goals selected yet — flag a Yes/No column as a "weekly goal" in Settings.</div>`;
+    return;
+  }
+
+  grid.innerHTML = goalFields.map(label=>{
+    const met = recs.filter(r=>r[label]).length;
+    const denom = recs.length;
+    const isMet = denom>0 && met===denom;
+    return `<div class="target">
+      <div class="label">${label}</div>
+      <div class="frac ${isMet?'met':'notmet'}">${met}/${denom||0}<span class="mark">${isMet?'✓':'–'}</span></div>
+    </div>`;
+  }).join('');
+}
+function shiftWeek(dir){
+  state.weekOffset = Math.min(0, state.weekOffset + dir);
+  renderTargets();
+  renderKPIRow(); // KPIs now share the same weekly toggle as Targets
+  renderCoachCard(); // Weekly Focus follows the selector too, not just "latest"
+}
+
+/* ========================================================================
+   RENDER: TRACKED METRICS (from mapped columns across all sources)
+   ======================================================================== */
+function renderTrackedMetrics(){
+  // Tracked Metrics box was removed from the dashboard — kept as a no-op
+  // so existing call sites don't need to be individually cleaned up.
+}
+
+/* ========================================================================
+   RENDER: SETTINGS — DATA SOURCES
+   ======================================================================== */
+// Five types. Weight is its own type. Text is context-only — never a KPI or a goal,
+// just carried through to the coach export for color beyond the numbers.
+const TYPE_OPTIONS = ["Date","Number","Y/N Daily Goal","Weight","Text"];
+
+function colLetter(i){
+  let s='', n=i+1;
+  while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); }
+  return s;
+}
+function guessType(val){
+  if(val==null || val==='') return 'Number';
+  if(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(val)) return 'Date';
+  if(/^(yes|no)$/i.test(val)) return 'Y/N Daily Goal';
+  if(/^\d+(\.\d+)?$/.test(val)) return 'Number';
+  return 'Text'; // long free-text (e.g. daily notes) — nothing else fits
+}
+function parseCSVLine(line){
+  // minimal CSV split — handles quoted commas
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){ inQ=!inQ; continue; }
+    if(ch===',' && !inQ){ out.push(cur); cur=''; continue; }
+    cur+=ch;
+  }
+  out.push(cur);
+  return out.map(v=>v.trim());
+}
+function sheetUrlToCsvUrl(url){
+  const idMatch = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if(!idMatch) return null;
+  const gidMatch = url.match(/gid=([0-9]+)/);
+  const gid = gidMatch ? gidMatch[1] : '0';
+  return `https://docs.google.com/spreadsheets/d/${idMatch[1]}/export?format=csv&gid=${gid}`;
+}
+function simulatedRow(){
+  // fallback so the interaction can still be tested when live fetch is blocked (CORS, private sheet, sandboxed preview, etc.)
+  return ["6/8/2026","1402","99","12053","","","","215.4"];
+}
+
+// Relative path — resolves automatically to wherever this page is being served from,
+// so it works regardless of which port the macro server assigns Trim's own server.js.
+const PROXY_BASE = '/trim-app/api';
+
+// Fetch a single row (1-indexed) from a sheet, trying proxy -> direct -> simulated.
+async function fetchSheetRow(url, rowNum){
+  // Tier 1: local proxy (bypasses CORS entirely — the real path once your server's running)
+  try{
+    const proxyUrl = `${PROXY_BASE}/sheet-csv?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    if(res.ok){
+      const text = await res.text();
+      const lines = text.split(/\r?\n/);
+      const targetLine = lines[Math.max(0, rowNum-1)];
+      if(targetLine) return { row: parseCSVLine(targetLine), source: 'proxy' };
+    }
+  }catch(e){ /* proxy not running / not reachable — try direct next */ }
+
+  // Tier 2: direct browser fetch (works for some public sheets, fails on others due to CORS)
+  const csvUrl = sheetUrlToCsvUrl(url);
+  if(csvUrl){
+    try{
+      const res = await fetch(csvUrl);
+      if(res.ok){
+        const text = await res.text();
+        const lines = text.split(/\r?\n/);
+        const targetLine = lines[Math.max(0, rowNum-1)];
+        if(targetLine) return { row: parseCSVLine(targetLine), source: 'direct' };
+      }
+    }catch(e){ /* CORS / network — fall back to simulated */ }
+  }
+
+  // Tier 3: simulated, so the mapping flow stays testable either way
+  return { row: simulatedRow(), source: 'simulated' };
+}
+function statusText(source, count, rowNum, label){
+  const map = {
+    proxy: `Detected ${count} ${label} from row ${rowNum} via your local server.`,
+    direct: `Detected ${count} ${label} from row ${rowNum} (direct fetch — no proxy needed for this sheet).`,
+    simulated: `Couldn't reach the sheet — no local proxy running and direct fetch was blocked. Showing a simulated preview so you can still test the mapping flow.`
+  };
+  return map[source];
+}
+
+/* ========================================================================
+   DATA — reads from the server's local data.json cache (fast, stable).
+   The actual fetch/parse/join work now happens server-side in /api/refresh;
+   this just reads the result and, separately, can trigger a fresh pull.
+   ======================================================================== */
+let lastFetchDiagnostics = [];
+let dataGeneratedAt = null;
+
+async function loadDataFromServer(){
+  try{
+    const res = await fetch(`${PROXY_BASE}/data`);
+    if(res.ok){
+      const payload = await res.json();
+      lastFetchDiagnostics = payload.diagnostics || [];
+      dataGeneratedAt = payload.generatedAt || null;
+      if(payload.data && payload.data.length>0){
+        DATA = payload.data;
+        dataSourceMode = 'live';
+        WEEKLY_BUCKETS = buildWeeklyBuckets();
+        return;
+      }
+    }
+  }catch(e){ /* server not reachable — keep whatever DATA currently holds (mock on first load) */ }
+  dataSourceMode = 'mock';
+}
+
+async function refreshDataOnServer(){
+  try{
+    const res = await fetch(`${PROXY_BASE}/refresh`, { method:'POST' });
+    if(res.ok){
+      const payload = await res.json();
+      lastFetchDiagnostics = payload.diagnostics || [];
+      dataGeneratedAt = payload.generatedAt || null;
+      if(payload.data && payload.data.length>0){
+        DATA = payload.data;
+        dataSourceMode = 'live';
+        WEEKLY_BUCKETS = buildWeeklyBuckets();
+      }
+      return payload;
+    }
+    return { error: `Refresh failed (${res.status})` };
+  }catch(e){
+    return { error: `Could not reach the server: ${e.message}` };
+  }
+}
+
+async function manualRefresh(){
+  const status = document.getElementById('refresh-status');
+  status.textContent = 'Refreshing…';
+  const result = await refreshDataOnServer();
+  renderAll();
+  if(result && result.error){
+    status.innerHTML = `<span style="color:var(--bad);">Failed: ${result.error}</span>`;
+  } else if(result && result.warning){
+    status.innerHTML = `<span style="color:var(--bad);">⚠ ${result.warning}</span>`;
+  } else {
+    const rowCount = result.data ? result.data.length : 0;
+    status.textContent = `Done — ${rowCount} rows in data.json as of ${new Date().toLocaleTimeString()}`;
+  }
+}
+
+async function detectHeaders(si){
+  const src = state.sources[si];
+  if(!src.headerRow){ alert('Set a header row number first, or leave it blank if your sheet has no headers.'); return; }
+  src._statusHeaders = 'Detecting headers…';
+  renderSources();
+
+  const { row, source } = await fetchSheetRow(src.url, src.headerRow);
+  row.forEach((val, ci)=>{
+    const targetLetter = colLetter(ci);
+    const existing = src.columns.find(c=>c && c.letter===targetLetter);
+    if(existing){
+      if(val) existing.field = val; // only overwrite label if this header cell actually has text
+    } else {
+      src.columns.push({ letter: targetLetter, sample: '', field: val || `Column ${targetLetter}`, type: 'Number' });
+    }
+  });
+
+  // show the raw row we actually pulled, so a hidden-row offset is visible immediately
+  const preview = row.slice(0,6).map(v=>v||'∅').join(' | ');
+  src._statusHeaders = statusText(source, row.filter(v=>v).length, src.headerRow, 'headers')
+    + ` Raw row ${src.headerRow} content: [${preview}]`;
+  src._statusHeadersLive = source !== 'simulated';
+  renderSources(); renderTrackedMetrics();
+}
+
+// Detect DATA row: populates/refreshes SAMPLE VALUES for every column, and guesses
+// TYPE only for columns that don't exist yet. Re-running never re-guesses the type of
+// an already-mapped column — a single sampled row can't reliably re-derive something
+// like a Y/N Daily Goal's Yes/Ok/No mapping (guessType only recognizes literal
+// yes/no), and silently reclassifying an already-configured column here was quietly
+// discarding real config (and feeding bad data into the coach export). Re-running
+// still fixes a wrong data-start row for the sample values shown; if a type genuinely
+// needs to change, that's a deliberate edit via the Type dropdown, not an automatic one.
+async function detectData(si){
+  const src = state.sources[si];
+  src._statusData = 'Detecting data…';
+  renderSources();
+
+  const { row, source } = await fetchSheetRow(src.url, src.startRow);
+  row.forEach((val, ci)=>{
+    const targetLetter = colLetter(ci);
+    const existing = src.columns.find(c=>c && c.letter===targetLetter);
+    if(existing){
+      existing.sample = val || '(empty)';
+    } else {
+      src.columns.push({ letter: targetLetter, sample: val || '(empty)', field: `Column ${targetLetter}`, type: guessType(val) });
+    }
+  });
+  src._statusData = statusText(source, row.filter(v=>v).length, src.startRow, 'columns')
+    + ` Raw row ${src.startRow} content: [${row.slice(0,6).map(v=>v||'∅').join(' | ')}]`;
+  src._statusDataLive = source !== 'simulated';
+  renderSources(); renderTrackedMetrics();
+}
+
+function renderSources(){
+  const container = document.getElementById('sources-list');
+  container.innerHTML = state.sources.map((src, si)=>`
+    <div class="card source-card">
+      <button class="source-remove-btn" onclick="removeSource(${si})" title="Remove this source">✕</button>
+      <div class="source-grid">
+        <div class="source-main">
+          <div class="source-field">
+            <span class="fieldlabel">SHEET NAME${src.isAnchor?'<span class="anchor-badge">JOIN ANCHOR</span>':''}</span>
+            <input type="text" class="name-input" placeholder="Name this sheet — e.g. Weight Tracker"
+              value="${src.name}" oninput="updateSourceField(${si},'name',this.value)"/>
+          </div>
+          <div class="source-field">
+            <span class="fieldlabel">PUBLIC SHARE URL</span>
+            <input type="text" class="url-input" placeholder="Paste the sheet's public share link"
+              value="${src.url}" oninput="updateSourceField(${si},'url',this.value)"/>
+          </div>
+        </div>
+        <div class="source-side">
+          <div class="rowbox">
+            <span class="fieldlabel">HEADER ROW (optional)</span>
+            <input type="number" placeholder="none" value="${src.headerRow ?? ''}"
+              oninput="updateSourceField(${si},'headerRow',this.value)"/>
+          </div>
+          <div class="rowbox">
+            <span class="fieldlabel">DATA STARTS AT ROW</span>
+            <input type="number" value="${src.startRow}" oninput="updateSourceField(${si},'startRow',this.value)"/>
+          </div>
+          <button class="anchor-link ${src.isAnchor?'is-anchor':''}" onclick="setAnchor(${si})">
+            ${src.isAnchor?'Join anchor':'Set as join anchor'}
+          </button>
+        </div>
+      </div>
+
+      <div class="detect-row">
+        <button class="small-btn" style="margin-top:0;" onclick="detectHeaders(${si})">⟳ Detect headers</button>
+        <button class="small-btn" style="margin-top:0;" onclick="detectData(${si})">⟳ Detect data</button>
+      </div>
+      ${src._statusHeaders ? `<div class="sub" style="margin-top:4px; color:${src._statusHeadersLive?'var(--good)':'var(--muted)'};">${src._statusHeaders}</div>` : ''}
+      ${src._statusData ? `<div class="sub" style="margin-top:4px; color:${src._statusDataLive?'var(--good)':'var(--muted)'};">${src._statusData}</div>` : ''}
+
+      ${src.columns.filter(c=>c).length ? `
+      <div class="col-table">
+        <div class="col-row-head col-grid-template">
+          <div>Column</div><div>Sample value</div><div>Field name</div><div>Type</div><div>Mapping</div><div></div>
+        </div>
+        ${src.columns.map((c,ci)=>c ? renderColumnRow(si,ci,c) : '').join('')}
+      </div>
+      <button class="small-btn" onclick="addColumn(${si})">+ Map column manually</button>
+      ` : `<div class="sub" style="margin-top:12px;">No columns yet — detect from the sheet, or map manually.</div>
+      <button class="small-btn" onclick="addColumn(${si})">+ Map column manually</button>`}
+    </div>
+  `).join('');
+}
+function renderColumnRow(si,ci,c){
+  // each row is its own bordered "card" sharing the same grid template as the
+  // header — a drawer opening below one row's grid line never affects any other
+  // row's height or alignment, since there's no shared table row underneath it.
+  const dateJoinButton = c.type==='Date' ? `<button class="anchor-link ${c.isJoinKey?'is-anchor':''}" style="display:block;margin-top:6px;" onclick="setJoinColumn(${si},${ci})">
+    ${c.isJoinKey?'✓ Join column':'Set as join column'}
+  </button>` : '';
+
+  const mappingIndicator = c.type==='Y/N Daily Goal' ? renderYesNoMappingIndicator(si,ci,c) : '';
+  const drawer = (c.type==='Y/N Daily Goal' && c._mappingExpanded) ? renderYesNoMappingDrawer(si,ci,c) : '';
+
+  return `<div class="col-row-card">
+    <div class="col-row col-grid-template">
+      <div class="col-letter">${c.letter}</div>
+      <div class="col-sample">${c.sample}</div>
+      <div><input type="text" class="field-name" value="${c.field}" oninput="updateColumnField(${si},${ci},'field',this.value)"/></div>
+      <div>
+        <select class="type-select" onchange="updateColumnField(${si},${ci},'type',this.value)">
+          ${TYPE_OPTIONS.map(t=>`<option ${t===c.type?'selected':''}>${t}</option>`).join('')}
+        </select>
+        ${dateJoinButton}
+      </div>
+      <div>${mappingIndicator}</div>
+      <div><button class="remove-btn" onclick="removeColumn(${si},${ci})">remove</button></div>
+    </div>
+    ${drawer}
+  </div>`;
+}
+function updateSourceField(si,field,val){
+  if(field==='startRow') val = parseInt(val)||1;
+  if(field==='headerRow') val = val==='' ? null : (parseInt(val)||null);
+  state.sources[si][field] = val;
+  renderTrackedMetrics();
+}
+function updateColumnField(si,ci,field,val){
+  const col = state.sources[si].columns[ci];
+  col[field] = val;
+  if(field==='type'){
+    // Date is the only type that can be a join column — keep isJoinKey in sync with that,
+    // and auto-designate the first Date column in a source so join behavior never sits unset.
+    if(val==='Date'){
+      const hasJoinKey = state.sources[si].columns.some(c=>c && c.type==='Date' && c.isJoinKey);
+      if(!hasJoinKey) col.isJoinKey = true;
+    } else {
+      col.isJoinKey = false;
+    }
+    if(val!=='Y/N Daily Goal'){
+      // stale once the column means something else — a re-detect starts clean if it comes back
+      delete col.yesValues;
+      delete col._detectedValues;
+      delete col._detectError;
+      delete col._mappingConfirmed;
+      delete col._mappingExpanded;
+    } else {
+      // needs mapping, but stays compressed — a call to action, not a forced expansion.
+      // detection only happens once the user actually opens it (see toggleMappingExpanded).
+      col._mappingConfirmed = false;
+      col._mappingExpanded = false;
+    }
+    renderSources();
+  }
+  renderTrackedMetrics();
+}
+function setJoinColumn(si,ci){
+  // radio-button semantics, same pattern as setAnchor — exactly one join column per source
+  state.sources[si].columns.forEach((c,i)=>{ if(c && c.type==='Date') c.isJoinKey = (i===ci); });
+  renderSources();
+}
+function renderYesNoMappingIndicator(si,ci,c){
+  // lives in its own grid column, inline with the row — red "invalid/incomplete config"
+  // or green "confirmed," collapsed by default either way. Orange is reserved for
+  // metric semantics, not a warning color, so this isn't the right place for it.
+  const needsMapping = !c._mappingConfirmed;
+  const label = c._mappingExpanded ? 'Close' : (needsMapping ? '⚠ Mapping required' : '✓ Mapped');
+  const color = c._mappingExpanded ? 'var(--sub)' : (needsMapping ? 'var(--bad)' : 'var(--good)');
+  return `<button class="anchor-link" style="color:${color};" onclick="toggleMappingExpanded(${si},${ci})">${label}</button>`;
+}
+function renderYesNoMappingDrawer(si,ci,c){
+  // opens below the whole row-card (full card width), not squeezed into one grid
+  // cell — this is what actually keeps the triggering row's own cells aligned
+  const body = c._detectingValues
+    ? `<div class="sub">Detecting…</div>`
+    : (c._detectedValues
+        ? renderYesNoPills(si,ci,c)
+        : `<div class="sub">${c._detectError||'Not detected yet.'} <span style="cursor:pointer;color:var(--ink);text-decoration:underline;" onclick="detectColumnValues(${si},${ci})">Retry</span></div>`);
+  return `<div class="col-drawer">
+    <div class="fieldlabel" style="margin-bottom:8px;">YES/NO MAPPING</div>
+    ${body}
+    <button class="small-btn" style="margin-top:10px;" onclick="confirmYesMapping(${si},${ci})">Save mapping</button>
+  </div>`;
+}
+function toggleMappingExpanded(si,ci){
+  const col = state.sources[si].columns[ci];
+  col._mappingExpanded = !col._mappingExpanded;
+  if(col._mappingExpanded && !col._detectedValues){
+    detectColumnValues(si,ci); // lazy-load the real values only once someone actually opens this
+  } else {
+    renderSources();
+  }
+}
+function renderYesNoPills(si,ci,c){
+  if(!c._detectedValues.length) return `<div class="sub">No values found in that column.</div>`;
+  const yes = c.yesValues || [];
+  // switch per detected value, same on/off pattern as everywhere else — the result
+  // here genuinely is binary (counts as Yes, or doesn't), so it gets the same treatment
+  // No/Yes flank the switch inline — No on the left (the default, and the side the
+  // knob rests on when off), Yes on the right (the side it slides toward when on),
+  // so which state you're looking at never depends on remembering what the color means
+  const rows = c._detectedValues.map((dv,vi)=>{
+    const isYes = yes.some(v=>v.toLowerCase()===dv.value.toLowerCase());
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;">
+      <span style="font-size:12.5px;"><strong>${dv.value}</strong> <span style="opacity:.6;">×${dv.count}</span></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;font-weight:700;color:${isYes?'var(--muted)':'var(--ink)'};">No</span>
+        <label class="switch"><input type="checkbox" ${isYes?'checked':''} onchange="toggleYesValue(${si},${ci},${vi})"><span class="slider"></span></label>
+        <span style="font-size:11px;font-weight:700;color:${isYes?'var(--good)':'var(--muted)'};">Yes</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div>${rows}</div>
+    <div class="sub" style="margin-top:4px;">Selected values will operate as "Yes." Unselected values default to "No."</div>`;
+}
+async function detectColumnValues(si,ci){
+  const src = state.sources[si];
+  const col = src.columns[ci];
+  col._detectError = null;
+  if(!src.url || !src.url.trim()){
+    col._detectError = "Add this sheet's URL first.";
+    renderSources();
+    return;
+  }
+  col._detectingValues = true;
+  renderSources();
+  try{
+    const res = await fetch(`${PROXY_BASE}/column-values`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ url: src.url, startRow: src.startRow, letter: col.letter })
+    });
+    const payload = await res.json();
+    if(res.ok){
+      col._detectedValues = payload.values || [];
+      col._mappingConfirmed = false; // fresh values — needs a fresh confirm
+    } else {
+      col._detectError = payload.error || 'Detection failed.';
+    }
+  }catch(e){
+    col._detectError = "Couldn't reach the server.";
+  }
+  col._detectingValues = false;
+  renderSources();
+}
+function confirmYesMapping(si,ci){
+  const col = state.sources[si].columns[ci];
+  col._mappingConfirmed = true;
+  col._mappingExpanded = false; // save closes the accordion back up
+  renderSources();
+}
+function toggleYesValue(si,ci,vi){
+  const col = state.sources[si].columns[ci];
+  const dv = col._detectedValues[vi];
+  if(!dv) return;
+  col.yesValues = col.yesValues || [];
+  const idx = col.yesValues.findIndex(v=>v.toLowerCase()===dv.value.toLowerCase());
+  if(idx>=0) col.yesValues.splice(idx,1);
+  else col.yesValues.push(dv.value);
+  col._mappingConfirmed = false; // mapping changed since the last save — needs re-confirming
+  renderSources();
+}
+function setAnchor(si){ state.sources.forEach((s,i)=>s.isAnchor = (i===si)); renderSources(); }
+function addColumn(si){
+  const nextLetter = colLetter(state.sources[si].columns.length);
+  state.sources[si].columns.push({letter:nextLetter, sample:"—", field:"New field", type:"Number"});
+  renderSources(); renderTrackedMetrics();
+}
+function removeColumn(si,ci){
+  const removed = state.sources[si].columns[ci];
+  state.sources[si].columns.splice(ci,1);
+  if(removed && removed.isJoinKey){
+    const nextDateCol = state.sources[si].columns.find(c=>c && c.type==='Date');
+    if(nextDateCol) nextDateCol.isJoinKey = true;
+  }
+  renderSources(); renderTrackedMetrics();
+}
+function addSource(){
+  state.sources.push({name:"", url:"", startRow:1, headerRow:null, isAnchor:false, columns:[]});
+  renderSources(); renderTrackedMetrics();
+}
+function removeSource(si){
+  const src = state.sources[si];
+  if(state.sources.length <= 1){
+    alert('Trim needs at least one data source — add a replacement before removing this one.');
+    return;
+  }
+  if(src.isAnchor){
+    alert('This is the join anchor — set another source as the join anchor first, then remove this one.');
+    return;
+  }
+  const label = src.name || src.url || 'this source';
+  if(!confirm(`Remove "${label}"? This deletes its column mappings too — nothing is written back until you hit Save changes.`)) return;
+  state.sources.splice(si,1);
+  renderSources(); renderGoalPills();
+}
+
+/* ========================================================================
+   RENDER: SETTINGS — WEEK START
+   ======================================================================== */
+function renderWeekStartPills(){
+  const el = document.getElementById('week-start-pills');
+  el.innerHTML = ['Sunday','Monday'].map(d=>
+    `<button class="pill ${state.weekStart===d?'active':''}" onclick="setWeekStart('${d}')">${d}</button>`
+  ).join('');
+}
+function setWeekStart(d){
+  state.weekStart = d;
+  WEEKLY_BUCKETS = buildWeeklyBuckets(); // week boundaries just changed — rebuild
+  renderWeekStartPills();
+  renderTargets();
+  renderKPIRow();
+  renderChart();
+}
+
+/* ========================================================================
+   RENDER: SETTINGS — KPI CONFIG (reorder + toggle, min3/max4 enforced)
+   ======================================================================== */
+function renderKPIConfig(){
+  const el = document.getElementById('kpi-config-list');
+  const fields = allMappedFields(); // {fieldName: type}
+  const numericFieldNames = Object.entries(fields)
+    .filter(([f,t])=>t==='Number')
+    .map(([f])=>f);
+
+  el.innerHTML = state.kpiConfig.map((k,i)=>{
+    const isStructural = OPS_STRUCTURAL.some(o=>o.v===k.op);
+    const needsPeriod = !['running_total','streak_logged','count_logged'].includes(k.op);
+
+    return `
+    <div class="kpi-config-row ${k.active?'':'inactive'}">
+      <div class="move">
+        <button onclick="moveKPI(${i},-1)" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveKPI(${i},1)" ${i===state.kpiConfig.length-1?'disabled':''}>▼</button>
+      </div>
+      <div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1;">
+        <input type="text" style="width:170px;" value="${k.label}" placeholder="Label"
+          oninput="updateKPICfg(${i},'label',this.value)"/>
+
+        <select class="type-select" style="width:130px;" onchange="updateKPICfg(${i},'op',this.value); updateKPICfg(${i},'field', document.getElementById('field-sel-${i}') ? document.getElementById('field-sel-${i}').value : null)">
+          <optgroup label="Field metrics (sum / average / etc.)">
+            ${OPS_NUMBER.map(o=>`<option value="${o.v}" ${o.v===k.op?'selected':''}>${o.t}</option>`).join('')}
+          </optgroup>
+          <optgroup label="Log activity">
+            ${OPS_STRUCTURAL.map(o=>`<option value="${o.v}" ${o.v===k.op?'selected':''}>${o.t}</option>`).join('')}
+          </optgroup>
+        </select>
+
+        ${!isStructural ? `
+        <select id="field-sel-${i}" class="type-select" style="width:140px;" onchange="updateKPICfg(${i},'field',this.value)">
+          ${numericFieldNames.map(f=>`<option value="${f}" ${f===k.field?'selected':''}>${f}</option>`).join('')}
+        </select>` : ''}
+
+        ${needsPeriod ? `
+        <select class="type-select" style="width:130px;" onchange="updateKPICfg(${i},'period',this.value)">
+          ${PERIODS.map(p=>`<option value="${p.v}" ${p.v===k.period?'selected':''}>${p.t}</option>`).join('')}
+        </select>` : ''}
+
+        ${!isStructural && (k.period==='week'||k.period==='4week') ? `
+        <button class="anchor-link" onclick="updateKPICfg(${i},'higherIsBetter',${k.higherIsBetter===false?'true':'false'})" title="Controls which direction colors green on the comparison badge">
+          ${k.higherIsBetter===false ? '↓ Lower is better' : '↑ Higher is better'}
+        </button>` : ''}
+      </div>
+      <label class="switch"><input type="checkbox" ${k.active?'checked':''} onchange="toggleKPI(${i})"><span class="slider"></span></label>
+      <button class="remove-btn" onclick="removeKPI(${i})">remove</button>
+    </div>`;
+  }).join('');
+
+  const activeCount = state.kpiConfig.filter(k=>k.active).length;
+  document.getElementById('kpi-count-note').textContent =
+    `${activeCount} of 3–5 active on the dashboard`;
+}
+function updateKPICfg(i, field, val){
+  state.kpiConfig[i][field] = val;
+  if(field==='op'){
+    // reset field selection when operation category changes
+    const isStructural = OPS_STRUCTURAL.some(o=>o.v===val);
+    if(isStructural) state.kpiConfig[i].field = null;
+  }
+  // Label is free text — re-rendering the Settings list on every keystroke destroys and
+  // recreates the very input being typed into, losing focus after each character. The
+  // dashboard preview can still update live; only the Settings list itself skips redrawing.
+  if(field!=='label') renderKPIConfig();
+  renderKPIRow();
+}
+function moveKPI(i,dir){
+  const j=i+dir; if(j<0||j>=state.kpiConfig.length) return;
+  [state.kpiConfig[i],state.kpiConfig[j]] = [state.kpiConfig[j],state.kpiConfig[i]];
+  renderKPIConfig(); renderKPIRow();
+}
+function toggleKPI(i){
+  const activeCount = state.kpiConfig.filter(k=>k.active).length;
+  const k = state.kpiConfig[i];
+  if(k.active && activeCount<=3){ renderKPIConfig(); return; } // enforce minimum 3
+  if(!k.active && activeCount>=5){ renderKPIConfig(); return; } // enforce maximum 5
+  k.active = !k.active;
+  renderKPIConfig(); renderKPIRow();
+}
+function removeKPI(i){
+  if(state.kpiConfig.filter(k=>k.active).length<=3 && state.kpiConfig[i].active){
+    alert('Keep at least 3 active KPIs — turn one off before removing, or add a replacement first.');
+    return;
+  }
+  state.kpiConfig.splice(i,1);
+  renderKPIConfig(); renderKPIRow();
+}
+function addKPI(){
+  const fields = Object.keys(allMappedFields());
+  state.kpiConfig.push({id:'k'+Date.now(), label:'New metric', field:fields[0]||null, op:'avg', period:'week', active:false});
+  renderKPIConfig();
+}
+
+/* ========================================================================
+   EXPORT FOR COACH — builds the actual paste-ready text block:
+   rolling 4-week daily rows + weekly aggregate table, same shape
+   as the manual format this whole app was built to replace.
+   ======================================================================== */
+function fieldsOfType(type){
+  const out = [];
+  const seen = new Set();
+  state.sources.forEach(src=>{
+    (src.columns||[]).forEach(c=>{
+      if(c && c.type===type && !seen.has(c.field)){ seen.add(c.field); out.push(c.field); }
+    });
+  });
+  return out;
+}
+
+function buildExportText(){
+  const {start, end} = getWeekBounds(state.weekOffset);
+  const rangeEnd = TODAY < end ? TODAY : end;
+
+  const numberFields = fieldsOfType('Number'); // Weight is reported separately below, always first
+  const goalFields = fieldsOfType('Y/N Daily Goal'); // every mapped goal, regardless of dashboard visibility
+  const textFields = fieldsOfType('Text');
+
+  // rolling 4 weeks of daily rows for numbers + goals, ending at the selected week
+  const fourWeeksStart = new Date(rangeEnd);
+  fourWeeksStart.setDate(fourWeeksStart.getDate() - 27);
+  const dailyRecs = DATA.filter(r=>{
+    const dt = new Date(r.date);
+    return dt >= fourWeeksStart && dt <= rangeEnd;
+  });
+
+  let out = `Daily Numbers (Date, Weight${numberFields.length?', '+numberFields.join(', '):''})\n`;
+  dailyRecs.forEach(r=>{
+    out += `${r.date}\t${r.weight ?? ''}` + numberFields.map(f=>`\t${r[f] ?? ''}`).join('') + '\n';
+  });
+
+  if(goalFields.length){
+    out += `\nDaily Goal Tracker (Date, ${goalFields.join(', ')})\n`;
+    dailyRecs.forEach(r=>{
+      out += `${r.date}` + goalFields.map(f=>`\t${r[f] ? 'Yes':'No'}`).join('') + '\n';
+    });
+  }
+
+  out += '\n4 Week Averages (Week Ending, Avg Weight' + numberFields.map(f=>`, Avg ${f}`).join('') + goalFields.map(f=>`, Compliant ${f}`).join('') + ')\n';
+  for(let w=3; w>=0; w--){
+    const wEnd = new Date(rangeEnd); wEnd.setDate(wEnd.getDate() - w*7);
+    const wStart = new Date(wEnd); wStart.setDate(wEnd.getDate()-6);
+    const wRecs = DATA.filter(r=>{ const dt=new Date(r.date); return dt>=wStart && dt<=wEnd; });
+    if(wRecs.length===0) continue;
+    const avg = f => (wRecs.reduce((s,r)=>s+(r[f]||0),0)/wRecs.length);
+    const compliant = f => wRecs.filter(r=>r[f]).length;
+    out += `${fmtShort(wEnd)}\t${avg('weight').toFixed(1)}`
+      + numberFields.map(f=>`\t${avg(f).toFixed(1)}`).join('')
+      + goalFields.map(f=>`\t${compliant(f)}/${wRecs.length}`).join('')
+      + '\n';
+  }
+
+  // Text/context fields — scoped to just the selected week, not the rolling 4 weeks,
+  // since these are meant as color for THIS check-in, not a trend
+  if(textFields.length){
+    const weekRecs = DATA.filter(r=>{ const dt=new Date(r.date); return dt>=start && dt<=rangeEnd; });
+    out += `\nWeekly Context (${fmtShort(start)} – ${fmtShort(rangeEnd)})\n`;
+    weekRecs.forEach(r=>{
+      textFields.forEach(f=>{
+        if(r[f]) out += `${r.date} — ${f}: ${r[f]}\n`;
+      });
+    });
+  }
+
+  return out;
+}
+
+/* ========================================================================
+   DATA DEBUG VIEW — raw, unpolished window into what was fetched, parsed,
+   and joined. Not meant to be pretty, just legible for diagnosing gaps.
+   ======================================================================== */
+function showDataView(){
+  const diagRows = lastFetchDiagnostics.map(d=>`
+    <tr>
+      <td>${d.name}</td><td>${d.status}</td>
+      <td>${d.isAnchor ? 'anchor' : ''}</td>
+      <td>${d.rowsParsed ?? '—'}</td>
+      <td>${d.skippedNoDate ?? '—'}</td>
+      <td>${d.totalLinesInSheet ?? '—'}</td>
+    </tr>`).join('');
+
+  const sampleN = 8;
+  const head = DATA.slice(0, sampleN);
+  const tail = DATA.slice(-sampleN);
+  const allKeys = Array.from(new Set(DATA.flatMap(r=>Object.keys(r))));
+
+  function rowsHtml(rows){
+    return rows.map(r=>`<tr>${allKeys.map(k=>`<td>${r[k]!==undefined?r[k]:''}</td>`).join('')}</tr>`).join('');
+  }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:1100px;max-width:95vw;max-height:85vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="label">Data — mode: ${dataSourceMode.toUpperCase()} · ${DATA.length} joined rows · cached ${dataGeneratedAt ? new Date(dataGeneratedAt).toLocaleString() : 'never'}</div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--sub);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+
+      <div class="label" style="margin-bottom:8px;">Per-source fetch status</div>
+      <table style="width:100%;font-size:12px;margin-bottom:20px;">
+        <thead><tr><th>Source</th><th>Status</th><th></th><th>Rows parsed</th><th>Skipped (no date)</th><th>Total CSV lines</th></tr></thead>
+        <tbody>${diagRows || '<tr><td colspan=6>No fetch attempted yet — add a source URL in Settings.</td></tr>'}</tbody>
+      </table>
+
+      <div class="label" style="margin-bottom:8px;">Joined data — first ${sampleN} rows</div>
+      <div style="overflow-x:auto;margin-bottom:20px;">
+        <table style="font-size:11px;font-family:monospace;white-space:nowrap;">
+          <thead><tr>${allKeys.map(k=>`<th>${k}</th>`).join('')}</tr></thead>
+          <tbody>${rowsHtml(head)}</tbody>
+        </table>
+      </div>
+
+      <div class="label" style="margin-bottom:8px;">Joined data — last ${sampleN} rows</div>
+      <div style="overflow-x:auto;">
+        <table style="font-size:11px;font-family:monospace;white-space:nowrap;">
+          <thead><tr>${allKeys.map(k=>`<th>${k}</th>`).join('')}</tr></thead>
+          <tbody>${rowsHtml(tail)}</tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-primary" onclick="(async()=>{await refreshDataOnServer(); renderAll(); this.closest('div[style*=fixed]').remove(); showDataView();})()">Re-fetch & refresh</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+const COACH_ANALYSIS_EXPECTED_SECS = '60–240'; // rough range — a real Claude Code call, not a fixed-time animation
+
+function openAnalyzeWeek(){
+  const {start, end} = getWeekBounds(state.weekOffset);
+  const weekStartKey = normalizeDateKey(start);
+  const weekEndKey = normalizeDateKey(end);
+  const text = buildExportText();
+  const existing = findRecommendationForWeek(weekStartKey);
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:720px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="label" style="color:var(--purple-hover);">Analyze Week — ${fmtShort(start)} – ${fmtShort(end)}</div>
+        <button class="analyze-close-btn" onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--sub);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      ${existing ? `<div class="sub" style="color:var(--bad);margin-bottom:12px;">This week already has an analysis — running again will replace it.</div>` : ''}
+
+      <div class="fieldlabel" style="margin-bottom:6px;">HOW DID THIS WEEK GO?</div>
+      <div class="sub" style="margin-bottom:8px;">The coach asks this first — vacation, a rough stretch, whatever's worth knowing before it looks at the numbers.</div>
+      <textarea id="week-summary-input" placeholder="e.g. Stressful week at work, but held steady on tracking..." style="min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;padding:12px;"></textarea>
+
+      <div class="fieldlabel" style="margin-top:16px;margin-bottom:6px;">DATA BEING SENT</div>
+      <textarea id="week-digest-readonly" readonly style="min-height:220px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:monospace;font-size:12px;padding:12px;white-space:pre;overflow:auto;">${text}</textarea>
+
+      <div id="analyze-status" class="sub" style="margin-top:12px;min-height:16px;"></div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+        <button class="btn" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+        <button class="btn btn-agentic" id="run-analysis-btn" onclick="runWeekAnalysis(this,'${weekStartKey}','${weekEndKey}',${!!existing})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg><span id="run-analysis-label">Run Analysis</span>
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function runWeekAnalysis(btn, weekStartKey, weekEndKey, hadExisting){
+  if(hadExisting && !confirm(`This overwrites the existing analysis for the week of ${weekStartKey} – ${weekEndKey}. Continue?`)) return;
+
+  const modalRoot = btn.closest('div[style*=fixed]');
+  const digestText = document.getElementById('week-digest-readonly').value;
+  const weeklySummary = document.getElementById('week-summary-input').value.trim();
+  const status = document.getElementById('analyze-status');
+  const closeBtn = modalRoot.querySelector('.analyze-close-btn');
+  const label = document.getElementById('run-analysis-label'); // separate from btn's icon, so the icon survives label changes
+
+  btn.disabled = true; label.textContent = 'Analyzing…';
+  closeBtn.style.visibility = 'hidden'; // don't let the request get orphaned mid-flight
+
+  let elapsed = 0;
+  status.textContent = `Analyzing… 0s of ~${COACH_ANALYSIS_EXPECTED_SECS}s expected`;
+  const ticker = setInterval(()=>{
+    elapsed++;
+    status.textContent = `Analyzing… ${elapsed}s of ~${COACH_ANALYSIS_EXPECTED_SECS}s expected`;
+  }, 1000);
+
+  try{
+    const res = await fetch(`${PROXY_BASE}/coach-analyze`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ weekStart: weekStartKey, weekEnd: weekEndKey, digestText, weeklySummary })
+    });
+    const payload = await res.json();
+    clearInterval(ticker);
+
+    if(!res.ok || !payload.ok){
+      status.style.color = 'var(--bad)';
+      status.textContent = `Failed: ${payload.error || `Request failed (${res.status})`}`;
+      btn.disabled = false; label.textContent = 'Run Analysis';
+      closeBtn.style.visibility = 'visible';
+      return;
+    }
+
+    await loadRecommendations();
+    renderCoachCard();
+    status.style.color = 'var(--good)';
+    status.textContent = 'Done.';
+    setTimeout(()=>{ if(modalRoot.parentNode) modalRoot.remove(); }, 700);
+  }catch(e){
+    clearInterval(ticker);
+    status.style.color = 'var(--bad)';
+    status.textContent = `Failed: ${e.message}`;
+    btn.disabled = false; label.textContent = 'Run Analysis';
+    closeBtn.style.visibility = 'visible';
+  }
+}
+
+/* ========================================================================
+   INIT
+   ======================================================================== */
+function renderAll(){
+  document.getElementById('hdr-date').textContent =
+    TODAY.toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'});
+  renderKPIRow();
+  renderChart();
+  renderTargets();
+  renderTrackedMetrics();
+  renderSources();
+  renderWeekStartPills();
+  renderKPIConfig();
+  renderGoalPills();
+  renderCoachProfile();
+  renderCoachCard();
+  renderSettingsTabs();
+}
+(async ()=>{
+  await loadState();
+  WEEKLY_BUCKETS = buildWeeklyBuckets(); // mock data — so the first paint isn't blank on the KPI/comparison front either
+  renderAll(); // first paint with mock data so the UI isn't blank while we read the cache
+  await loadDataFromServer(); // rebuilds WEEKLY_BUCKETS itself once live data lands
+  await loadRecommendations();
+  renderAll(); // re-paint with cached live data + latest coach recommendation if either exists
+})();
+</script>
+</body>
+</html>

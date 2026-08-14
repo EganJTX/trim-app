@@ -1,0 +1,17 @@
+# Real personal data — lives locally only, never committed.
+# Fresh clones get config.json bootstrapped from config.example.json by server.js
+# (data.json and recommendations.json intentionally start empty — see server.js).
+config.json
+data.json
+recommendations.json
+
+# Raw pre-recolor logo source — final logo is already inlined as base64 in
+# index.html, this is just kept around for reference.
+Trim logo.png
+
+# Dependencies
+node_modules/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db

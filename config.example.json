@@ -1,0 +1,19 @@
+{
+  "sources": [
+    { "name": "", "url": "", "startRow": 2, "headerRow": null, "isAnchor": true, "columns": [] }
+  ],
+  "weekStart": "Sunday",
+  "kpiConfig": [
+    {"id":"k1", "label":"Total Steps", "field":"Steps", "op":"sum", "period":"all", "active":true},
+    {"id":"k2", "label":"Weekly Avg Steps", "field":"Steps", "op":"avg", "period":"week", "active":true},
+    {"id":"k3", "label":"Logging Streak", "field":null, "op":"streak_logged", "period":"all", "active":true},
+    {"id":"k4", "label":"Days Logged", "field":null, "op":"count_logged", "period":"all", "active":true},
+    {"id":"k5", "label":"Avg. Stress", "field":"Stress", "op":"avg", "period":"week", "active":false}
+  ],
+  "weekOffset": 0,
+  "goalsEnabled": true,
+  "coachProfile": {
+    "dob": "", "height": "", "programStartDate": "", "startingWeight": "", "goalWeight": "",
+    "programHistory": "", "targetsAndThresholds": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "trim-app",
+  "version": "1.0.0",
+  "description": "Trim — a local goal-tracking dashboard with a durable-memory AI Coach loop.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "CC-BY-NC-4.0",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
