@@ -155,6 +155,58 @@ function joinSources(parsedBySrc, sources){
   });
 }
 
+// ── programArc — an unwindowed, full-history diagnostic computed alongside the
+//    28-day export window (never replaces it). Answers "has this person ever
+//    reached goal, and where do they stand relative to their all-time low" —
+//    context the rolling window structurally can't see. Recomputed on every
+//    /api/refresh from the full realized data set, not the export's 4-week slice.
+const PROGRAM_ARC_TOLERANCE_LBS = 5;      // "meaningfully above low" / "still near goal" threshold
+const PROGRAM_ARC_PLATEAU_LBS = 3;        // all-time low moving less than this = plateaued, not progressing
+const PROGRAM_ARC_PLATEAU_MIN_DAYS = 84;  // need at least 12 weeks of history before calling it a plateau
+
+function computeProgramArc(records, goalWeight) {
+  const withWeight = (records || [])
+    .filter(r => typeof r.weight === 'number')
+    .slice()
+    .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  if (withWeight.length === 0 || typeof goalWeight !== 'number') return null;
+
+  let allTimeLow = withWeight[0];
+  withWeight.forEach(r => { if (r.weight < allTimeLow.weight) allTimeLow = r; });
+
+  const current = withWeight[withWeight.length - 1];
+  const distanceFromLowToday = current.weight - allTimeLow.weight;
+  const daysSinceLow = Math.round((new Date(current.date) - new Date(allTimeLow.date)) / 86400000);
+
+  const reachedGoal = allTimeLow.weight <= goalWeight;
+
+  let status;
+  if (reachedGoal) {
+    const nearGoalNow = Math.abs(current.weight - goalWeight) <= PROGRAM_ARC_TOLERANCE_LBS;
+    const meaningfullyAboveLow = distanceFromLowToday > PROGRAM_ARC_TOLERANCE_LBS;
+    // Near goal now always reads as sustained, even if that's a long way from the
+    // all-time low (e.g. the low itself was an overshoot past goal).
+    status = (nearGoalNow || !meaningfullyAboveLow) ? 'reached_and_sustained' : 'reached_and_regained';
+  } else {
+    const spanDays = Math.round((new Date(current.date) - new Date(withWeight[0].date)) / 86400000);
+    const midpoint = withWeight[Math.floor(withWeight.length / 2)];
+    const firstHalf = withWeight.filter(r => r.date <= midpoint.date);
+    const secondHalf = withWeight.filter(r => r.date > midpoint.date);
+    const lowOf = arr => arr.reduce((min, r) => r.weight < min ? r.weight : min, arr[0].weight);
+    const lowMoved = (secondHalf.length && firstHalf.length) ? Math.abs(lowOf(firstHalf) - lowOf(secondHalf)) : Infinity;
+    status = (spanDays >= PROGRAM_ARC_PLATEAU_MIN_DAYS && lowMoved <= PROGRAM_ARC_PLATEAU_LBS)
+      ? 'perpetual_plateau'
+      : 'never_reached';
+  }
+
+  return {
+    status,
+    allTimeLow: { weight: allTimeLow.weight, date: allTimeLow.date },
+    distanceFromLowToday: Math.round(distanceFromLowToday * 10) / 10,
+    daysSinceLow
+  };
+}
+
 // ── data.json — the local cache the app actually reads from ──
 const DATA_PATH = path.join(__dirname, 'data.json');
 
@@ -225,7 +277,10 @@ app.post(`/${SLUG}/api/refresh`, async (req, res) => {
     totalLinesInSheet: ''
   });
 
-  const payload = { data: realized, diagnostics, warning, generatedAt: new Date().toISOString() };
+  const goalWeight = config.coachProfile && config.coachProfile.goalWeight;
+  const programArc = computeProgramArc(realized, goalWeight);
+
+  const payload = { data: realized, diagnostics, warning, generatedAt: new Date().toISOString(), programArc };
   try {
     fs.writeFileSync(DATA_PATH, JSON.stringify(payload, null, 2), 'utf8');
     res.json(payload);

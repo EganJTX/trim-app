@@ -42,6 +42,18 @@ How to reason:
   looks stale against recent data) is fine to mention, but it is never the primary
   deliverable: the verdict and recommendation are.
 
+You have "Program Arc" (an unwindowed, all-time record: all-time low weight, distance from
+that low today, days since, and a status of reached_and_regained / never_reached /
+reached_and_sustained / perpetual_plateau) for diagnostic reasoning, and the user's own
+"Program History" free-text for their narrated context. Treat the free-text as their story,
+Program Arc as the objective record; don't restate one as if it were the other.
+
+Use Program Arc to calibrate confidence, not to narrate history. Only surface it explicitly
+when it changes the actual recommendation this week, never as a standalone callback ("you've
+been here before"). When comparing to a prior period, compare consistency, not parameters:
+logging reliability and adherence patterns, not raw thresholds (steps/calorie targets
+legitimately change as the program matures; a threshold shift is not a regression).
+
 Writing style: never use an em dash. Restructure the sentence into two sentences, a comma,
 a colon, or parentheses instead.
 
@@ -131,10 +143,27 @@ function runCoachAnalysis({ configPath, recommendationsPath, weekStart, weekEnd,
       clearTimeout(timer);
 
       if (code !== 0) {
+        // Some failures (e.g. an expired CLI login) come back as exit code 1 with
+        // an empty stderr — the actual reason is JSON on stdout instead. Surface
+        // that instead of a bare "no stderr output".
+        let cliMessage = null;
+        try {
+          const parsed = JSON.parse(stdout);
+          if (parsed && parsed.is_error && typeof parsed.result === 'string') cliMessage = parsed.result;
+        } catch (e) { /* stdout wasn't JSON — fall through to stderr/generic message */ }
+
+        if (cliMessage && /oauth|authenticat/i.test(cliMessage)) {
+          return resolve({
+            ok: false,
+            status: 500,
+            error: `Claude Code CLI is not authenticated (${cliMessage}). Run "claude" in a terminal on this machine and complete the login prompt, then retry.`
+          });
+        }
+
         return resolve({
           ok: false,
           status: 500,
-          error: `Claude Code exited with code ${code}: ${stderr.slice(0, 500) || 'no stderr output'}`
+          error: `Claude Code exited with code ${code}: ${cliMessage || stderr.slice(0, 500) || 'no stderr output'}`
         });
       }
 

@@ -1332,6 +1332,7 @@ function statusText(source, count, rowNum, label){
    ======================================================================== */
 let lastFetchDiagnostics = [];
 let dataGeneratedAt = null;
+let programArc = null; // full-history diagnostic from /api/refresh — unwindowed, additive to the export
 
 async function loadDataFromServer(){
   try{
@@ -1340,6 +1341,7 @@ async function loadDataFromServer(){
       const payload = await res.json();
       lastFetchDiagnostics = payload.diagnostics || [];
       dataGeneratedAt = payload.generatedAt || null;
+      programArc = payload.programArc || null;
       if(payload.data && payload.data.length>0){
         DATA = payload.data;
         dataSourceMode = 'live';
@@ -1358,6 +1360,7 @@ async function refreshDataOnServer(){
       const payload = await res.json();
       lastFetchDiagnostics = payload.diagnostics || [];
       dataGeneratedAt = payload.generatedAt || null;
+      programArc = payload.programArc || null;
       if(payload.data && payload.data.length>0){
         DATA = payload.data;
         dataSourceMode = 'live';
@@ -1880,6 +1883,18 @@ function buildExportText(){
         if(r[f]) out += `${r.date} — ${f}: ${r[f]}\n`;
       });
     });
+  }
+
+  // Program arc — unwindowed, full-history diagnostic (not scoped to the 4-week
+  // window above). Additive only: computed server-side in /api/refresh from the
+  // entire realized data set, refreshed whenever a refresh runs.
+  if(programArc){
+    const d = programArc.distanceFromLowToday;
+    out += `\nProgram Arc (all-time, not part of the 4-week window above)\n`;
+    out += `Status: ${programArc.status}\n`;
+    out += `All-time low: ${programArc.allTimeLow.weight} on ${programArc.allTimeLow.date}\n`;
+    out += `Distance from low today: ${d>=0?'+':''}${d.toFixed(1)}\n`;
+    out += `Days since low: ${programArc.daysSinceLow}\n`;
   }
 
   return out;
