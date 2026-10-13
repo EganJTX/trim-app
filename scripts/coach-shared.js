@@ -45,6 +45,20 @@ function recentHistoryFor(recommendationsPath, targetWeekStart, n = WEEKS_FED_IN
     .map(e => ({ weekStart: e.weekStart, weekEnd: e.weekEnd, verdict: e.verdict, recommendation: e.recommendation }));
 }
 
+// How many real, weighed-in days data.json holds for weekStart..weekEnd (inclusive,
+// "YYYY-MM-DD" keys). Reads the on-disk cache rather than trusting the client's
+// digest, so a not-yet-refreshed (or mock-data) week can't be sent to the coach.
+function countRecordsInWeek(dataPath, weekStart, weekEnd) {
+  if (!fs.existsSync(dataPath)) return 0;
+  try {
+    const payload = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+    const rows = Array.isArray(payload.data) ? payload.data : [];
+    return rows.filter(r => r.date >= weekStart && r.date <= weekEnd && typeof r.weight === 'number').length;
+  } catch (e) {
+    return 0;
+  }
+}
+
 // Age is derived from DOB at prompt time rather than stored directly, so it's
 // always correct without needing a yearly manual update.
 function ageFromDob(dob) {
@@ -85,5 +99,6 @@ module.exports = {
   sortByWeekStart,
   upsertRecommendation,
   recentHistoryFor,
+  countRecordsInWeek,
   renderCoachProfile
 };

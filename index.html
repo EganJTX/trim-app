@@ -64,6 +64,18 @@
   .btn-agentic-outline:hover{border-color:var(--purple-hover);color:var(--ink);}
   .btn-agentic-outline svg{vertical-align:-2px;margin-right:6px;}
   #coach-export-btn{padding-left:20px;padding-right:20px;}
+  /* in-app replacement for the browser's native confirm()/alert() — see appDialog() */
+  .btn-danger{background:var(--bad);border:none;color:#fff;font-size:12px;}
+  .btn-danger:hover{filter:brightness(1.1);}
+  .app-dialog-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:center;justify-content:center;}
+  .app-dialog{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:460px;max-width:90vw;box-shadow:0 20px 50px rgba(0,0,0,.45);}
+  .app-dialog.tone-agentic{border-color:rgba(167,139,250,.35);}
+  .app-dialog.tone-danger{border-color:rgba(239,68,68,.35);}
+  .app-dialog-title{font-weight:700;font-size:14px;margin-bottom:10px;}
+  .app-dialog.tone-agentic .app-dialog-title{color:var(--purple-hover);}
+  .app-dialog.tone-danger .app-dialog-title{color:var(--bad);}
+  .app-dialog-msg{color:var(--sub);font-size:13px;line-height:1.7;white-space:pre-line;}
+  .app-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
   .gear{width:38px;height:38px;border-radius:8px;border:1px solid var(--border2);
     background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);flex-shrink:0;}
   .gear:hover{color:var(--ink);border-color:var(--sub);}
@@ -554,6 +566,48 @@ async function loadState(){
   state.weekOffset = mostRecentCompleteWeekOffset();
 }
 
+/* App-styled stand-in for confirm()/alert(). Resolves true on confirm, false on
+   cancel / Esc / backdrop click. Omit cancelLabel for an info-only notice (OK only).
+   tone: 'agentic' (purple, coach actions) | 'danger' (red, destructive) | 'info'.
+   Text goes in via textContent, so user-supplied names can't inject markup. */
+function appDialog({title, message, confirmLabel='OK', cancelLabel=null, tone='info'}){
+  return new Promise(resolve=>{
+    const backdrop = document.createElement('div');
+    backdrop.className = 'app-dialog-backdrop';
+    backdrop.innerHTML = `
+      <div class="app-dialog tone-${tone}" role="alertdialog" aria-modal="true">
+        <div class="app-dialog-title"></div>
+        <div class="app-dialog-msg"></div>
+        <div class="app-dialog-actions">
+          ${cancelLabel ? '<button class="btn app-dialog-cancel"></button>' : ''}
+          <button class="btn ${tone==='danger' ? 'btn-danger' : tone==='agentic' ? 'btn-agentic' : 'btn-primary'} app-dialog-ok"></button>
+        </div>
+      </div>`;
+    backdrop.querySelector('.app-dialog-title').textContent = title;
+    backdrop.querySelector('.app-dialog-msg').textContent = message;
+    const ok = backdrop.querySelector('.app-dialog-ok');
+    ok.textContent = confirmLabel;
+    const cancel = backdrop.querySelector('.app-dialog-cancel');
+    if(cancel) cancel.textContent = cancelLabel;
+
+    const finish = val => {
+      document.removeEventListener('keydown', onKey, true);
+      backdrop.remove();
+      resolve(val);
+    };
+    const onKey = e => {
+      if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); finish(false); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    ok.addEventListener('click', ()=>finish(true));
+    if(cancel) cancel.addEventListener('click', ()=>finish(false));
+    backdrop.addEventListener('mousedown', e=>{ if(e.target===backdrop) finish(false); });
+
+    document.body.appendChild(backdrop);
+    ok.focus();
+  });
+}
+
 async function saveConfig(){
   const unmapped = [];
   state.sources.forEach(src=>{
@@ -562,7 +616,10 @@ async function saveConfig(){
     });
   });
   if(unmapped.length){
-    alert(`Confirm the Yes/No mapping before saving:\n\n${unmapped.join('\n')}\n\nOpen Data sources, review the detected values for each, and click "Save mapping."`);
+    await appDialog({
+      title: 'Confirm your Yes/No mapping first',
+      message: `${unmapped.join('\n')}\n\nOpen Data sources, review the detected values for each, and click "Save mapping."`
+    });
     return;
   }
 
@@ -1391,7 +1448,10 @@ async function manualRefresh(){
 
 async function detectHeaders(si){
   const src = state.sources[si];
-  if(!src.headerRow){ alert('Set a header row number first, or leave it blank if your sheet has no headers.'); return; }
+  if(!src.headerRow){
+    await appDialog({title:'Header row needed', message:'Set a header row number first, or leave it blank if your sheet has no headers.'});
+    return;
+  }
   src._statusHeaders = 'Detecting headers…';
   renderSources();
 
@@ -1684,18 +1744,23 @@ function addSource(){
   state.sources.push({name:"", url:"", startRow:1, headerRow:null, isAnchor:false, columns:[]});
   renderSources(); renderTrackedMetrics();
 }
-function removeSource(si){
+async function removeSource(si){
   const src = state.sources[si];
   if(state.sources.length <= 1){
-    alert('Trim needs at least one data source — add a replacement before removing this one.');
+    await appDialog({title:"Can't remove this source", message:'Trim needs at least one data source — add a replacement before removing this one.'});
     return;
   }
   if(src.isAnchor){
-    alert('This is the join anchor — set another source as the join anchor first, then remove this one.');
+    await appDialog({title:"Can't remove the join anchor", message:'This is the join anchor — set another source as the join anchor first, then remove this one.'});
     return;
   }
   const label = src.name || src.url || 'this source';
-  if(!confirm(`Remove "${label}"? This deletes its column mappings too — nothing is written back until you hit Save changes.`)) return;
+  const confirmed = await appDialog({
+    title: 'Remove this source?',
+    message: `"${label}" and its column mappings will be removed. Nothing is written back until you hit Save changes.`,
+    confirmLabel: 'Remove source', cancelLabel: 'Cancel', tone: 'danger'
+  });
+  if(!confirmed) return;
   state.sources.splice(si,1);
   renderSources(); renderGoalPills();
 }
@@ -1801,9 +1866,9 @@ function toggleKPI(i){
   k.active = !k.active;
   renderKPIConfig(); renderKPIRow();
 }
-function removeKPI(i){
+async function removeKPI(i){
   if(state.kpiConfig.filter(k=>k.active).length<=3 && state.kpiConfig[i].active){
-    alert('Keep at least 3 active KPIs — turn one off before removing, or add a replacement first.');
+    await appDialog({title:'Keep at least 3 KPIs', message:'Keep at least 3 active KPIs — turn one off before removing, or add a replacement first.'});
     return;
   }
   state.kpiConfig.splice(i,1);
@@ -1963,8 +2028,57 @@ function showDataView(){
 
 const COACH_ANALYSIS_EXPECTED_SECS = '60–240'; // rough range — a real Claude Code call, not a fixed-time animation
 
+// Real (non-mock) weighed-in days for the selected week. Mock data always covers
+// "today", so live mode is required — otherwise an unrefreshed dashboard looks full.
+function weekDataCount(start, end){
+  if(dataSourceMode !== 'live') return 0;
+  return recordsInRange(start, TODAY < end ? TODAY : end).filter(r=>typeof r.weight==='number').length;
+}
+
+// Shown instead of the analysis form when there's nothing real to analyze yet.
+function openNoDataReminder(start, end){
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:520px;max-width:90vw;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="label" style="color:var(--bad);">Refresh your data first</div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--sub);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      <div style="font-size:13px;line-height:1.7;margin-bottom:6px;">
+        There's no data loaded for <strong>${fmtShort(start)} – ${fmtShort(end)}</strong> yet, so the coach has nothing to analyze.
+      </div>
+      <div class="sub">${dataSourceMode !== 'live' ? 'The dashboard is currently showing sample data, not your sheets. ' : ''}Pull the latest from your sheets, then run the analysis again.</div>
+      <div id="nodata-status" class="sub" style="margin-top:12px;min-height:16px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+        <button class="btn" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+        <button class="btn btn-primary" onclick="refreshThenAnalyze(this)">Refresh data now</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function refreshThenAnalyze(btn){
+  const modalRoot = btn.closest('div[style*=fixed]');
+  const status = document.getElementById('nodata-status');
+  btn.disabled = true;
+  status.style.color = '';
+  status.textContent = 'Refreshing…';
+  const result = await refreshDataOnServer();
+  renderAll();
+  if(result && result.error){
+    status.style.color = 'var(--bad)';
+    status.textContent = `Failed: ${result.error}`;
+    btn.disabled = false;
+    return;
+  }
+  modalRoot.remove();
+  openAnalyzeWeek(); // re-checks: opens the form if data landed, the reminder again if not
+}
+
 function openAnalyzeWeek(){
   const {start, end} = getWeekBounds(state.weekOffset);
+  if(weekDataCount(start, end) === 0){ openNoDataReminder(start, end); return; }
   const weekStartKey = normalizeDateKey(start);
   const weekEndKey = normalizeDateKey(end);
   const text = buildExportText();
@@ -2003,7 +2117,14 @@ function openAnalyzeWeek(){
 }
 
 async function runWeekAnalysis(btn, weekStartKey, weekEndKey, hadExisting){
-  if(hadExisting && !confirm(`This overwrites the existing analysis for the week of ${weekStartKey} – ${weekEndKey}. Continue?`)) return;
+  if(hadExisting){
+    const confirmed = await appDialog({
+      title: 'Replace existing analysis?',
+      message: `The analysis for the week of ${weekStartKey} – ${weekEndKey} will be overwritten with a fresh one.`,
+      confirmLabel: 'Replace analysis', cancelLabel: 'Keep existing', tone: 'agentic'
+    });
+    if(!confirmed) return;
+  }
 
   const modalRoot = btn.closest('div[style*=fixed]');
   const digestText = document.getElementById('week-digest-readonly').value;

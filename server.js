@@ -352,7 +352,7 @@ app.post(`/${SLUG}/api/column-values`, async (req, res) => {
 //    uses) and posted in; this route only assembles the profile/history and
 //    hands off to coach-analyze.js, which does the actual Claude Code call. ──
 const { runCoachAnalysis } = require('./scripts/coach-analyze');
-const { readRecommendations } = require('./scripts/coach-shared');
+const { readRecommendations, countRecordsInWeek } = require('./scripts/coach-shared');
 const RECOMMENDATIONS_PATH = path.join(__dirname, 'recommendations.json');
 
 app.get(`/${SLUG}/api/recommendations`, (req, res) => {
@@ -361,6 +361,17 @@ app.get(`/${SLUG}/api/recommendations`, (req, res) => {
 
 app.post(`/${SLUG}/api/coach-analyze`, async (req, res) => {
   const { weekStart, weekEnd, digestText, weeklySummary } = req.body || {};
+
+  // Gate: never spend a Claude call (or overwrite a prior analysis) on a week
+  // with no real data. data.json is the source of truth, not the client's digest.
+  if (weekStart && weekEnd && countRecordsInWeek(DATA_PATH, weekStart, weekEnd) === 0) {
+    return res.status(409).json({
+      ok: false,
+      code: 'no_data',
+      error: `No data has been loaded for ${weekStart} – ${weekEnd} yet. Refresh your data first, then run the analysis again.`
+    });
+  }
+
   const result = await runCoachAnalysis({
     configPath: CONFIG_PATH,
     recommendationsPath: RECOMMENDATIONS_PATH,
