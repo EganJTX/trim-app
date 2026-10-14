@@ -72,6 +72,26 @@ function ageFromDob(dob) {
   return age;
 }
 
+// One line per target, said the way a person would say it out loud. "suggest" asks the coach
+// to propose a starting point and to say plainly that it did.
+function describeTarget(t) {
+  const field = ((t && t.field) || '').trim();
+  if (!field) return null;
+  const per = t.per === 'week' ? 'per week' : 'per day';
+  const num = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
+  if (t.shape === 'suggest') {
+    return `${field}: no target set yet. Propose a starting target from the data, and say clearly that it is your proposal.`;
+  }
+  if (t.shape === 'between') {
+    const lo = num(t.low), hi = num(t.high);
+    if (lo === null || hi === null) return null;
+    return `${field}: between ${lo} and ${hi} ${per}`;
+  }
+  const v = num(t.value);
+  if (v === null) return null;
+  return `${field}: ${t.shape === 'atmost' ? 'at most' : 'at least'} ${v} ${per}`;
+}
+
 // Renders the coach profile (config.json's coachProfile block) as prompt text,
 // omitting any field that isn't set — an absent field should never read as a
 // value to reason from.
@@ -83,12 +103,18 @@ function renderCoachProfile(coachProfile) {
     const age = ageFromDob(p.dob);
     if (age !== null) lines.push(`Age: ${age}`);
   }
-  if (p.height) lines.push(`Height: ${p.height}`);
+  if (p.sex === 'female' || p.sex === 'male') lines.push(`Sex: ${p.sex}`);
+  if (p.height) {
+    const hm = String(p.height).trim().match(/^(\d{1,2})'(\d{1,2})"$/);
+    lines.push(hm ? `Height: ${hm[1]} ft ${hm[2]} in` : `Height: ${p.height}`);
+  }
   if (p.programStartDate) lines.push(`Program start date: ${p.programStartDate}`);
   if (p.startingWeight) lines.push(`Starting weight: ${p.startingWeight}`);
   if (p.goalWeight) lines.push(`Goal weight: ${p.goalWeight}`);
   if (p.programHistory && p.programHistory.trim()) lines.push(`\nProgram History / Context:\n${p.programHistory.trim()}`);
-  if (p.targetsAndThresholds && p.targetsAndThresholds.trim()) lines.push(`\nTargets & Thresholds:\n${p.targetsAndThresholds.trim()}`);
+  const targetLines = (Array.isArray(p.targets) ? p.targets : []).map(describeTarget).filter(Boolean);
+  if (targetLines.length) lines.push(`\nTargets:\n${targetLines.map(l => '- ' + l).join('\n')}`);
+  if (p.notes && p.notes.trim()) lines.push(`\nNotes from the person:\n${p.notes.trim()}`);
   return lines.join('\n');
 }
 

@@ -274,6 +274,225 @@
   .save-bar{display:flex;justify-content:flex-end;margin-top:30px;}
   .save-msg{font-size:12px;color:var(--good);align-self:center;margin-right:14px;opacity:0;transition:.2s;} /* confirmation state */
   .save-msg.show{opacity:1;}
+
+  /* ---------- Data tab v2 — baseline + supplemental sheets, three steps each ---------- */
+  .data-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:22px;}
+  .data-title{font-size:16px;font-weight:600;color:var(--ink);}
+  .data-desc{font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.5;}
+  .data-actions{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .tip{position:relative;display:inline-block;margin-left:6px;color:var(--sub);border-bottom:1px dotted var(--muted);cursor:help;outline:none;}
+  .tip .tip-body{visibility:hidden;opacity:0;position:absolute;left:0;top:calc(100% + 8px);z-index:20;width:340px;
+    background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.6;
+    color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.45);transition:opacity .12s;}
+  .tip:hover .tip-body,.tip:focus .tip-body{visibility:visible;opacity:1;}
+  .source-card{margin-bottom:16px;}
+  .src-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:6px;}
+  .src-id{display:flex;align-items:center;gap:12px;min-width:0;}
+  .src-title{font-size:15px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .src-sum{display:flex;align-items:center;gap:16px;flex-shrink:0;}
+  .src-warn{font-size:12px;font-weight:500;color:var(--delta-bad);}
+  .src-x{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px;line-height:1;}
+  .src-x:hover{color:var(--ink);}
+  .src-foot{margin-top:18px;padding-top:14px;border-top:1px solid var(--hair);}
+  .src-collapsed{padding:16px 24px;}
+  .chip{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border2);
+    border-radius:999px;padding:3px 9px;color:var(--sub);white-space:nowrap;}
+  .chip.base{border-color:rgba(76,141,255,.5);color:#7FB0FF;}
+  .chip.good{border-color:rgba(95,181,134,.5);color:#8FD1AB;margin-left:8px;}
+  .step{border-top:1px solid var(--hair);margin-top:20px;padding-top:18px;}
+  .src-head + .step{border-top:none;margin-top:16px;padding-top:0;}
+  .step.locked{opacity:.6;}
+  .step-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .step-n{width:20px;height:20px;border-radius:50%;border:1px solid var(--border2-hover);color:var(--sub);font-size:11px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .step-n.done{background:var(--good-soft);border-color:rgba(95,181,134,.5);color:var(--good);}
+  .step-n.now{border-color:var(--primary);color:var(--primary-hover);}
+  .step-name{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);}
+  .step-head .mut,.mut{font-size:12px;color:var(--muted);}
+  .step-actions{display:flex;justify-content:flex-end;margin-top:16px;}
+  .fld-grid{display:grid;gap:16px;align-items:end;}
+  .g12{grid-template-columns:1fr 2fr;}
+  .g-rows{grid-template-columns:1fr 1fr auto;margin-top:16px;}
+  .g-tl{grid-template-columns:minmax(0,1fr) auto;align-items:center;}
+  .fld{min-width:0;}
+  .fld-label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;}
+  .detect-btns{display:flex;gap:10px;}
+  .src-status{margin-top:10px;word-break:break-word;color:var(--muted);}
+  .src-status-ok{color:var(--good);}
+  .src-status-warn{color:#E3A15C;}
+  .well-static{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;}
+  .mini-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--ink);border-radius:10px;padding:7px 12px;
+    font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .mini-btn:hover{border-color:var(--border2-hover);}
+  .mini-btn.cta{border-color:var(--primary);color:var(--primary-hover);background:var(--primary-soft);}
+  .mini-btn.cta:hover{background:rgba(76,141,255,.22);}
+  .link-btn{background:none;border:none;color:var(--sub);font-size:12px;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px;}
+  .link-btn:hover{color:var(--ink);}
+  .ok{color:var(--good);font-weight:600;font-size:13px;}
+  .mid-t{color:var(--sub);font-size:13px;}
+  .bad-t{color:var(--delta-bad);font-weight:500;font-size:13px;}
+  .warn-t{color:var(--delta-bad);}
+  /* column table: a read-only group (what the sheet holds) beside an editable group (what Trim does with it) */
+  .cg{display:grid;grid-template-columns:44px 100px minmax(0,1fr) 150px minmax(0,1.35fr) 64px;gap:12px;align-items:center;}
+  .cg-groups{padding-bottom:4px;}
+  .cg-group{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .cg-head{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--sub);padding-bottom:8px;border-bottom:1px solid var(--hair);}
+  .cg-row{border-bottom:1px solid var(--hair);padding:9px 0;}
+  .cg-row:last-child{border-bottom:none;}
+  .cg-row .col-letter,.cg-row .col-sample{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);}
+  .cg-row .col-sample{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .map-cell{min-width:0;}
+  .yn-sum{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .yn-sum .sub{margin-right:2px;}
+  .yn-chip{display:inline-block;font-size:11.5px;border:1px solid rgba(95,181,134,.45);color:#8FD1AB;background:var(--good-soft);border-radius:999px;padding:2px 9px;}
+  .yn-drawer{margin-top:10px;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;}
+  .yn-val{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;}
+  /* connection options */
+  .opt{display:grid;grid-template-columns:22px minmax(0,1fr) 190px;align-items:center;gap:10px;padding:11px 14px;margin-top:8px;
+    background:var(--surface2);border:1px solid var(--border2);border-radius:10px;font-size:13px;cursor:pointer;outline:none;}
+  .opt:focus-visible{border-color:var(--primary);}
+  .opt.sel{border-color:rgba(95,181,134,.5);background:rgba(95,181,134,.07);}
+  .opt .rad{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--muted);display:inline-block;}
+  .opt.sel .rad{border-color:var(--good);background:radial-gradient(var(--good) 45%,transparent 50%);}
+  .opt-m{display:block;}
+  .trk{display:block;height:5px;border-radius:3px;background:#2A2D31;margin-top:5px;}
+  .trk i{display:block;height:100%;border-radius:3px;}
+  .how-combine{margin-top:6px;}
+  .how-combine summary{cursor:pointer;font-size:12.5px;color:var(--sub);padding:6px 0;}
+  .how-combine .how-body{font-size:12.5px;color:var(--sub);line-height:1.7;padding:6px 0 0;max-width:760px;}
+  .data-foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+  .combine-note{margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;}
+  .combine-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);margin-bottom:8px;}
+  .combine-note ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.65;color:var(--sub);}
+  .combine-note li{margin-bottom:3px;}
+  /* soft divider between what the sheet holds (read-only) and what Trim does with it (editable) */
+  .cg > span:nth-child(3),.cg-groups > .cg-group:nth-child(2){border-left:1px solid var(--hair);padding-left:12px;margin-left:-6px;}
+
+  /* ---------- Display tab v2 — a stand-alone card per area ---------- */
+  .disp-card{margin-bottom:22px;padding:26px 28px;border-radius:16px;}
+  .disp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;}
+  .disp-title{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.005em;}
+  .disp-desc{font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.55;max-width:760px;}
+  .disp-count{font-size:12px;color:var(--muted);white-space:nowrap;margin-top:3px;}
+  /* the card header (title + purpose) is its own band, separated from the content below */
+  .disp-card > .disp-desc{max-width:none;padding-bottom:20px;border-bottom:1px solid var(--hair);}
+  .disp-card > .disp-head{padding-bottom:20px;border-bottom:1px solid var(--hair);}
+  .disp-card > .disp-head + .kc-grid{margin-top:0;}
+  .disp-card > .disp-head + div > .sw-list{margin-top:0;border-top:none;}
+  .disp-empty{font-size:12.5px;color:var(--sub);margin-top:16px;}
+  .seg{display:inline-flex;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:3px;margin-top:18px;}
+  .seg-btn{background:none;border:none;color:var(--sub);font-size:13px;padding:7px 20px;border-radius:7px;cursor:pointer;}
+  .seg-btn:hover{color:var(--ink);}
+  .seg-btn.on{background:#F2EFE8;color:#0D0E10;font-weight:600;}
+  .kc-grid{display:grid;grid-template-columns:22px minmax(0,1.35fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) 104px 52px 62px;gap:12px;align-items:center;}
+  .kc-head{margin-top:20px;height:34px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--hair);}
+  .kc-row{min-height:58px;border-bottom:1px solid var(--hair);}
+  .kc-row:last-child{border-bottom:none;}
+  .kc-row.inactive input[type=text],.kc-row.inactive select{opacity:.6;}
+  .kc-row select.type-select,.kc-row input[type=text]{width:100%;}
+  .kc-na{color:var(--muted);font-size:13px;padding-left:10px;}
+  .kc-grid .switch{display:inline-block;vertical-align:middle;}
+  .kc-move{display:flex;flex-direction:column;gap:2px;}
+  .kc-move button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0;line-height:1.1;}
+  .kc-move button:hover:not(:disabled){color:var(--ink);}
+  .kc-move button:disabled{opacity:.3;cursor:default;}
+  .sw-list{margin-top:16px;border-top:1px solid var(--hair);}
+  .sw-row{display:flex;justify-content:space-between;align-items:center;min-height:52px;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw-row:last-child{border-bottom:none;}
+
+  /* ---------- Profile tab — User, Program, and Coach Profile as stand-alone cards ----------
+     Hierarchy: card title > section heading > indented content. Prose recedes, values and controls lead. */
+  .para{font-size:15px;line-height:2.1;font-weight:400;color:#C9C3B6;}
+  .para .inline-val{background:transparent;border:none;border-bottom:1px solid var(--border2-hover);border-radius:0;color:var(--ink);
+    font:inherit;font-weight:500;padding:0 4px;text-align:center;width:auto;outline:none;}
+  .para .inline-val:focus{border-bottom-color:var(--ink);}
+  .para .inline-val::placeholder{color:var(--muted);font-weight:400;}
+  .para .dv-date{width:156px;color-scheme:dark;}
+  .para .dv-short{width:84px;}
+  .para .dv-num{width:84px;}
+  .para .dv-ft{width:58px;}
+  .para input[type=number]::-webkit-outer-spin-button,.para input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .para input[type=number]{-moz-appearance:textfield;}
+  .pf-body-first{margin:22px 0 0 24px;}
+  .pf-body select.pf-select{width:220px;}
+  /* a section inside a card: heading, a line of purpose, then content stepped in beneath it */
+  .pf-section{border-top:1px solid var(--hair);margin:28px 0 0 24px;padding-top:24px;}
+  .pf-head{font-size:14px;font-weight:600;color:var(--ink);}
+  .pf-desc{font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.55;}
+  .pf-body{margin:16px 0 0 20px;}
+  .pf-text{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--ink);
+    font-size:13px;line-height:1.65;padding:12px 14px;resize:vertical;font-family:inherit;}
+  .pf-text:focus{outline:none;border-color:var(--border2-hover);}
+  .tg-grid{display:grid;grid-template-columns:minmax(0,1fr) 140px minmax(220px,1.3fr) 90px 56px;gap:12px;align-items:center;}
+  .tg-head{height:34px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--hair);}
+  .tg-row{min-height:60px;border-bottom:1px solid var(--hair);}
+  .tg-row:last-child{border-bottom:none;}
+  .tg-row select.type-select{width:100%;font-weight:500;}
+  .tg-vals{display:flex;align-items:center;gap:10px;}
+  .tg-vals input[type=number]{width:88px;font-weight:500;}
+  .tg-suggest{font-size:12.5px;color:#E3A15C;}
+  /* coach style dials — setting rows: text on the left, slider on the right with room of its own */
+  .dial{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:56px;align-items:center;margin:0 0 0 24px;padding:24px 0;border-bottom:1px solid var(--hair);}
+  .dial:first-child{padding-top:22px;}
+  .dial:last-of-type{border-bottom:none;}
+  .dial-name{font-size:14px;font-weight:600;color:var(--ink);}
+  /* the attribute is the parent; its selected value and meaning sit just inside it */
+  .dial-score{font-size:13px;font-weight:500;color:var(--ink);margin:4px 0 0 14px;}
+  .dial-desc{font-size:12.5px;color:var(--sub);margin:6px 0 0 14px;line-height:1.55;max-width:386px;}
+  .dial-track{position:relative;display:flex;align-items:center;justify-content:space-between;height:30px;padding:0 4px;}
+  .dial-track::before{content:"";position:absolute;left:12px;right:12px;top:50%;height:2px;background:#2F3237;transform:translateY(-50%);}
+  .dial-pt{position:relative;width:14px;height:14px;border-radius:50%;background:#2F3237;border:1px solid var(--border2-hover);padding:0;cursor:pointer;}
+  .dial-pt:hover{border-color:var(--ink);}
+  .dial-pt.on{width:22px;height:22px;background:#F2EFE8;border-color:#F2EFE8;box-shadow:0 0 0 4px rgba(242,239,232,.12);}
+  .dial-pt:focus-visible{outline:2px solid var(--ink);outline-offset:3px;}
+  .dial-ends{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--sub);}
+  .dial-name .tip-i{margin-left:8px;border-bottom:none;color:var(--muted);font-size:13px;font-weight:400;}
+  .dial-name .tip-i:hover,.dial-name .tip-i:focus{color:var(--ink);}
+  .dial-name .tip-i .tip-body{width:320px;font-weight:400;}
+  .tip-about{display:block;color:var(--ink);margin-bottom:8px;}
+  .tip-line{display:block;color:var(--sub);margin-top:6px;}
+  .tip-line b{color:var(--ink);font-weight:600;margin-right:4px;}
+  .coach-sum{margin:26px 0 0 24px;padding:20px 22px;background:var(--bg);border:1px solid var(--border);border-radius:12px;}
+  .coach-sum-head{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .coach-sum-body{font-size:14px;line-height:1.75;color:#E6E2D8;}
+
+  /* ---------- Analyze Week modal ---------- */
+  .an-back{position:fixed;inset:0;background:rgba(5,6,8,.66);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .an-modal{background:var(--surface);border:1px solid var(--border);border-top-color:var(--border-top);border-radius:16px;width:660px;max-width:100%;
+    max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.55);}
+  .an-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 26px;border-bottom:1px solid var(--hair);flex-shrink:0;}
+  .an-id{display:flex;align-items:center;gap:14px;}
+  .an-disc{width:40px;height:40px;border-radius:50%;background:var(--purple-soft);border:1px solid rgba(167,139,250,.28);color:var(--purple-hover);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .an-title{font-size:18px;font-weight:600;color:var(--ink);}
+  .an-sub{font-size:12.5px;color:var(--sub);margin-top:3px;}
+  .an-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:6px;line-height:1;}
+  .an-x:hover{color:var(--ink);}
+  .an-body{padding:6px 26px 4px;overflow:auto;}
+  .an-note{margin:18px 0 0;padding:11px 14px;border:1px solid rgba(227,161,92,.35);background:rgba(227,161,92,.08);color:#E3A15C;border-radius:10px;font-size:12.5px;}
+  .an-sec{padding:22px 0;border-bottom:1px solid var(--hair);}
+  .an-sec:last-child{border-bottom:none;}
+  .an-h{font-size:14px;font-weight:600;color:var(--ink);}
+  .an-d{font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.55;}
+  .an-ta{width:100%;margin-top:14px;min-height:84px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--ink);
+    font-size:13px;line-height:1.6;padding:12px 14px;resize:vertical;font-family:inherit;}
+  .an-ta:focus{outline:none;border-color:var(--border2-hover);}
+  .an-rows{margin-top:14px;border:1px solid var(--hair);border-radius:12px;}
+  .an-r{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;padding:12px 16px;border-bottom:1px solid var(--hair);font-size:13px;}
+  .an-r:last-child{border-bottom:none;}
+  .an-k{color:var(--sub);}
+  .an-v{color:#E6E2D8;}
+  .an-v em{font-style:normal;color:var(--muted);}
+  .an-exact{margin-top:14px;}
+  .an-exact summary{cursor:pointer;font-size:12.5px;color:var(--sub);padding:2px 0;}
+  .an-exact summary:hover{color:var(--ink);}
+  .an-exact textarea{width:100%;margin-top:10px;min-height:200px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--ink);
+    font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.5;padding:12px;white-space:pre;overflow:auto;}
+  .an-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 26px;border-top:1px solid var(--hair);flex-shrink:0;}
+  .an-status{font-size:12.5px;color:var(--purple-hover);}
+  .an-status:empty{display:none;}
+  .an-help{font-size:12.5px;color:var(--muted);}
+  .an-actions{display:flex;gap:10px;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -364,23 +583,23 @@
     <div class="settings-tabs" id="settings-tabs"></div>
 
     <div id="settings-tab-data" class="settings-tab-content">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div class="label section-title" style="margin:0;">Data sources</div>
-        <div style="display:flex;align-items:center;gap:12px;">
+      <div class="data-head">
+        <div>
+          <div class="data-title">Data sources</div>
+          <div class="data-desc">Start with a baseline sheet, then add sheets that supplement it.
+            <span class="tip" tabindex="0">ⓘ Requirements<span class="tip-body">One mapped column across all sheets must be Typed as Weight. It powers the dashboard trend and KPIs. Type is independent of what you name the column.</span></span>
+          </div>
+        </div>
+        <div class="data-actions">
           <span class="sub" id="refresh-status"></span>
           <button class="btn" onclick="showDataView()" title="Raw data diagnostics">Verify Data</button>
           <button class="btn" onclick="manualRefresh()">⟳ Refresh Data</button>
         </div>
       </div>
-      <div class="sub section-desc">Add a sheet, name it whatever makes sense to you, and map its columns. Add as many as you need.</div>
-      <div class="req-note">One mapped column across all sources must be Typed as Weight — it powers the dashboard trend + KPIs. Type is independent of what you name the column.</div>
 
       <div id="sources-list"></div>
-      <button class="small-btn" onclick="addSource()">+ Add data source</button>
-
-      <div class="join-note">
-        <b>HOW SOURCES COMBINE</b><br><br>
-        Every date-typed column can be marked "Join column" — do this once per source. The join anchor's join column sets the master date sequence that appears on the dashboard; every other source's join column is matched against those dates by value, not by name, so it's fine if one sheet calls it "Date" and another calls it "Day" or "Timestamp." Missing days show as blank, not dropped.
+      <div class="data-foot">
+        <button class="mini-btn" onclick="addSource()">+ Add sheet</button>
       </div>
     </div>
 
@@ -390,72 +609,124 @@
         <button class="btn" onclick="switchSettingsTab('data')">Go to Data</button>
       </div>
       <div id="settings-display-real">
-        <div class="label section-title" style="margin-top:0;">Week start</div>
-        <div class="sub section-desc">Controls how "this week" and target fractions (N/7) are calculated.</div>
-        <div class="pill-row" id="week-start-pills"></div>
 
-        <div class="label section-title">Dashboard KPIs</div>
-        <div class="sub section-desc">Built from whatever's mapped in your sources — pick a field, an operation, a period, and label it however you like. Aim for 3–5 on the dashboard.</div>
-        <div class="sub section-desc">1 Week and 4 Weeks always compare against the same-length block of complete weeks immediately before — 4 Weeks means the prior 4 weeks (weeks 5–8 relative to what's selected), never a calendar month. Both follow the dashboard's week toggle.</div>
-        <div class="sub" id="kpi-count-note" style="margin-bottom:12px;"></div>
-        <div id="kpi-config-list"></div>
-        <button class="small-btn" onclick="addKPI()">+ Add metric</button>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:36px;">
-          <div class="label section-title" style="margin:0;">Y/N Daily Goal</div>
-          <label class="switch"><input type="checkbox" id="goals-enabled-toggle" onchange="toggleGoalsEnabled()"><span class="slider"></span></label>
+        <div class="card disp-card">
+          <div class="disp-title">Week start</div>
+          <div class="disp-desc">Choose the day your week begins. The dashboard's "this week" view and your daily-goal fractions (N/7) follow it.</div>
+          <div class="seg" id="week-start-pills"></div>
         </div>
-        <div class="sub section-desc">Every column mapped as Y/N Daily Goal shows up here. Toggle which ones actually appear on the dashboard's daily goal band.</div>
-        <div class="sub" style="margin-bottom:12px;">Off hides the "Weekly Goal Compliance" card on the dashboard — flip this if you don't track daily Yes/No goals.</div>
-        <div id="goal-pills-list"></div>
+
+        <div class="card disp-card">
+          <div class="disp-head">
+            <div>
+              <div class="disp-title">Dashboard KPIs</div>
+              <div class="disp-desc">Build the numbers at the top of your dashboard: pick a field, how to summarize it, and the period it covers.
+                <span class="tip" tabindex="0">ⓘ How week comparisons work<span class="tip-body">A 1 Week or 4 Weeks KPI compares with the block of complete weeks just before it, so 4 Weeks means the prior 4 weeks rather than a calendar month. Both follow the week you're viewing on the dashboard.</span></span>
+              </div>
+            </div>
+            <span class="disp-count" id="kpi-count-note"></span>
+          </div>
+          <div class="kc-grid kc-head"><span></span><span>Label</span><span>Operation</span><span>Field</span><span>Period</span><span>Better when</span><span style="text-align:right;">Show</span><span></span></div>
+          <div id="kpi-config-list"></div>
+          <div style="margin-top:16px;"><button class="mini-btn" onclick="addKPI()">+ Add metric</button></div>
+        </div>
+
+        <div class="card disp-card">
+          <div class="disp-head">
+            <div>
+              <div class="disp-title">Trend comparison signals</div>
+              <div class="disp-desc">Choose which number fields you can compare against your weight trend line. Anything you turn off here stays in your data and stays available for KPIs.</div>
+            </div>
+            <span class="disp-count" id="trend-signals-count"></span>
+          </div>
+          <div id="trend-signal-list"></div>
+        </div>
+
+        <div class="card disp-card">
+          <div class="disp-head">
+            <div>
+              <div class="disp-title">Daily goals</div>
+              <div class="disp-desc">Show the Weekly Goal Compliance card on your dashboard, and choose which goals appear on it.</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="goals-enabled-toggle" onchange="toggleGoalsEnabled()"><span class="slider"></span></label>
+          </div>
+          <div id="goal-pills-list"></div>
+        </div>
+
       </div>
     </div>
 
-    <div id="settings-tab-user-profile" class="settings-tab-content" style="display:none;">
-      <div class="label section-title" style="margin-top:0;">User Profile</div>
-      <div class="sub section-desc">Facts about you — essentially one-time. Every field is optional; anything left blank is left out, not guessed at.</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:16px;">
-        <div class="source-field">
-          <span class="fieldlabel">DATE OF BIRTH</span>
-          <input type="date" id="cp-dob" oninput="updateCoachProfile('dob',this.value)"/>
+    <div id="settings-tab-profile" class="settings-tab-content" style="display:none;">
+
+      <div class="card disp-card">
+        <div class="disp-title">User Profile</div>
+        <div class="disp-desc">A little about you. Everything here is optional, and anything you leave blank is simply left out.</div>
+        <div class="pf-body-first">
+          <div class="para">I was born on <input type="date" id="cp-dob" class="inline-val dv-date" oninput="updateCoachProfile('dob',this.value)"/>
+            and I'm <input type="number" id="cp-heightFt" class="inline-val dv-ft" placeholder="ft" min="3" max="8" step="1" aria-label="Height, feet" oninput="updateHeight()" onblur="normalizeHeightFields()"/> ft
+            <input type="number" id="cp-heightIn" class="inline-val dv-ft" placeholder="in" min="0" max="11" step="1" aria-label="Height, inches" oninput="updateHeight()" onblur="normalizeHeightFields()"/> in tall.</div>
         </div>
-        <div class="source-field">
-          <span class="fieldlabel">HEIGHT</span>
-          <input type="text" id="cp-height" placeholder="e.g. 6'0&quot;" oninput="updateCoachProfile('height',this.value)"/>
-        </div>
-        <div class="source-field">
-          <span class="fieldlabel">PROGRAM START DATE</span>
-          <input type="date" id="cp-programStartDate" oninput="updateCoachProfile('programStartDate',this.value)"/>
-        </div>
-        <div class="source-field">
-          <span class="fieldlabel">STARTING WEIGHT</span>
-          <input type="number" id="cp-startingWeight" oninput="updateCoachProfile('startingWeight',this.value)"/>
-        </div>
-        <div class="source-field">
-          <span class="fieldlabel">GOAL WEIGHT</span>
-          <input type="number" id="cp-goalWeight" oninput="updateCoachProfile('goalWeight',this.value)"/>
+        <div class="pf-section">
+          <div class="pf-head">Sex</div>
+          <div class="pf-desc">Helps your coach calibrate guidance on calories, protein, and healthy ranges.</div>
+          <div class="pf-body">
+            <select id="cp-sex" class="type-select pf-select" aria-label="Sex" onchange="updateCoachProfile('sex',this.value)">
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="settings-tab-program-profile" class="settings-tab-content" style="display:none;">
-      <div class="label section-title" style="margin-top:0;">Program Profile</div>
-      <div class="sub section-desc">The program's current calibrations — likely the tab you'll revisit most, as targets and context shift over time.</div>
+      <div class="card disp-card">
+        <div class="disp-title">Program Profile</div>
+        <div class="disp-desc">Where your program starts, where it's headed, and how you're calibrating along the way.</div>
+        <div class="pf-body-first">
+          <div class="para">I started on <input type="date" id="cp-programStartDate" class="inline-val dv-date" oninput="updateCoachProfile('programStartDate',this.value)"/>
+            at <input type="number" id="cp-startingWeight" class="inline-val dv-num" placeholder="weight" oninput="updateCoachProfile('startingWeight',this.value)"/> lb,
+            and my goal weight is <input type="number" id="cp-goalWeight" class="inline-val dv-num" placeholder="goal" oninput="updateCoachProfile('goalWeight',this.value)"/> lb.</div>
+        </div>
 
-      <div class="source-field" style="margin-bottom:16px;">
-        <span class="fieldlabel">PROGRAM HISTORY / CONTEXT</span>
-        <textarea id="cp-programHistory" placeholder="e.g. Started Dec 2024 around 232 lbs, cut to ~200 by mid-2025, regained some after a vacation, since working back down. Goal is primarily for health, not aesthetics."
-          style="min-height:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;padding:10px;"
-          oninput="updateCoachProfile('programHistory',this.value)"></textarea>
+        <div class="pf-section">
+          <div class="pf-head">Targets</div>
+          <div class="pf-desc">Set a target for each thing you track, using the same numbers your sheet does. Your coach reads them right beside your data, so no units are needed: a Protein target of 80 means 80 of whatever your Protein column holds. Not sure yet? Choose Suggest for me.</div>
+          <div class="pf-body">
+            <div class="tg-grid tg-head"><span>Field</span><span>Target</span><span>Values</span><span>Per</span><span></span></div>
+            <div id="targets-cfg-list"></div>
+            <div style="margin-top:14px;"><button class="mini-btn" onclick="addTarget()">+ Add target</button></div>
+              </div>
+        </div>
+
+        <div class="pf-section">
+          <div class="pf-head">Program history</div>
+          <div class="pf-desc">Your story in your own words: where you started, what's changed since, and why you're doing this. Add how the things you track fit your program, such as what you focus on most and which numbers are supporting signals. Your coach reads it as written.</div>
+          <div class="pf-body">
+            <textarea id="cp-programHistory" class="pf-text" style="min-height:96px;margin-top:0;" placeholder="e.g. Started Dec 2024 around 232 lbs and have been working steadily down since. My program centers on steps and overall calories, with protein and stress as supporting signals I keep an eye on." oninput="updateCoachProfile('programHistory',this.value)"></textarea>
+          </div>
+        </div>
       </div>
 
-      <div class="source-field" style="margin-bottom:16px;">
-        <span class="fieldlabel">TARGETS &amp; THRESHOLDS</span>
-        <div class="sub" style="margin-bottom:6px;">Whatever you track, in your own words — read as-is by the coach, nothing here is parsed or validated.</div>
-        <textarea id="cp-targetsAndThresholds" placeholder="e.g. Steps: aim for ~12,000/day — don't push higher just to fix the scale. Protein: 90g floor, 100g ideal; flag if under 70g for multiple days. Calories: 1400–1500 target, never below 1300. Workouts: 4+/week, 2 minimum."
-          style="min-height:110px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;padding:10px;"
-          oninput="updateCoachProfile('targetsAndThresholds',this.value)"></textarea>
+      <div class="card disp-card">
+        <div class="disp-head">
+          <div>
+            <div class="disp-title">Coach Profile</div>
+            <div class="disp-desc">Set how your coach sounds and how it pushes. Each setting moves on its own, so you can mix them to suit you.</div>
+          </div>
+          <button class="link-btn" id="coach-style-reset" style="display:none;margin-top:3px;" onclick="resetCoachStyle()">Reset to default</button>
+        </div>
+        <div id="coach-dials"></div>
+        <div class="coach-sum" id="coach-summary"></div>
+
+        <div class="pf-section">
+          <div class="pf-head">Notes for your coach</div>
+          <div class="pf-desc">Anything else worth knowing that doesn't fit above: a health consideration, an upcoming change, a preference.</div>
+          <div class="pf-body">
+            <textarea id="cp-notes" class="pf-text" style="min-height:76px;margin-top:0;" placeholder="e.g. I travel for work most of every other week, so my routines shift then." oninput="updateCoachProfile('notes',this.value)"></textarea>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <div class="save-bar">
@@ -522,7 +793,7 @@ let state = {
   goalsEnabled: true,
   coachProfile: {
     dob: "", height: "", programStartDate: "", startingWeight: "", goalWeight: "",
-    programHistory: "", targetsAndThresholds: ""
+    programHistory: ""
   }
 };
 
@@ -568,12 +839,16 @@ async function loadState(){
   // (sparse array entries become literal `null` once serialized through JSON)
   state.sources.forEach(src=>{
     if(Array.isArray(src.columns)) src.columns = src.columns.filter(c=>c);
+    // session-only state from an older save (detect messages, a stuck "detecting" flag, an open drawer) never reloads
+    Object.keys(src).forEach(k=>{ if(TRANSIENT_KEY.test(k)) delete src[k]; });
+    (src.columns||[]).forEach(c=>Object.keys(c).forEach(k=>{ if(TRANSIENT_KEY.test(k)) delete c[k]; }));
 
     // self-heal: configs saved before explicit join columns existed have Date
     // columns with no isJoinKey set — default to the first one, matching the
     // old implicit behavior, so nothing changes for an existing config on load
     const dateCols = src.columns.filter(c=>c.type==='Date');
     if(dateCols.length && !dateCols.some(c=>c.isJoinKey)) dateCols[0].isJoinKey = true;
+    if(src.connected === undefined) src.connected = !!(src.isAnchor || (dateCols.length && src.columns.length));
 
     // self-heal: grandfather in Y/N Daily Goal columns that already existed before
     // explicit Yes/No mapping was required — they were already relying on the old
@@ -586,6 +861,17 @@ async function loadState(){
 
   // self-heal: configs saved before the weekly-lens redesign have KPI periods in
   // rolling-day-window terms — map them onto their direct week-based replacements
+  // one-time move: the old free-text targets note now lives in "Notes for your coach", where it stays visible and editable
+  if(state.coachProfile && typeof state.coachProfile.targetsAndThresholds === 'string'){
+    const legacy = state.coachProfile.targetsAndThresholds.trim();
+    if(legacy){
+      const existing = (state.coachProfile.notes || '').trim();
+      state.coachProfile.notes = (existing ? existing + '\n\n' : '') + 'Earlier notes on targets:\n' + legacy;
+    }
+    delete state.coachProfile.targetsAndThresholds;
+  }
+  if(!Array.isArray(state.trendSignalsOff)) state.trendSignalsOff = []; // fields switched off as trend comparison signals
+  if(state.coachProfile && !Array.isArray(state.coachProfile.targets)) state.coachProfile.targets = [];
   state.kpiConfig.forEach(k=>{
     if(k.period==='7d') k.period = 'week';
     if(k.period==='30d') k.period = '4week';
@@ -661,7 +947,7 @@ async function saveConfig(){
 
   try{
     await fetch(`${PROXY_BASE}/config`, {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(state)
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(stateForSave())
     });
     const msg = document.getElementById('save-msg');
     msg.classList.add('show');
@@ -682,6 +968,7 @@ function toggleSettings(){
   dash.style.display = showingSettings ? 'block' : 'none';
   set.style.display = showingSettings ? 'none' : 'block';
   gear.classList.toggle('active', !showingSettings);
+  if(!showingSettings && activeSettingsTab === 'data') renderSources();
 }
 
 /* ========================================================================
@@ -692,8 +979,7 @@ function toggleSettings(){
 const SETTINGS_TABS = [
   { id:'data', label:'Data' },
   { id:'display', label:'Display' },
-  { id:'user-profile', label:'User Profile' },
-  { id:'program-profile', label:'Program Profile' }
+  { id:'profile', label:'Profile' }
 ];
 let activeSettingsTab = 'data';
 
@@ -704,6 +990,9 @@ function savedSourcesHaveMapping(){
 function switchSettingsTab(id){
   activeSettingsTab = id;
   renderSettingsTabs();
+  if(id === 'data') renderSources();
+  if(id === 'display'){ renderKPIConfig(); renderTrendSignals(); renderGoalPills(); } // pick up anything just mapped on Data
+  if(id === 'profile'){ renderCoachProfile(); }
 }
 
 function renderSettingsTabs(){
@@ -1077,7 +1366,10 @@ function renderChart(){
 
   // comparison metric options — any mapped Number field, dynamically, using its real label
   const overlaySelect = document.getElementById('overlay-metric');
-  const numberFields = fieldsOfType('Number');
+  const numberFields = trendSignalFields(); // honors Display → Trend comparison signals
+  const overlayControls = document.querySelector('.overlay-controls');
+  if(overlayControls) overlayControls.style.display = numberFields.length ? '' : 'none';
+  if(!numberFields.length) document.getElementById('overlay-toggle').checked = false;
   const prevSelection = overlaySelect.value;
   overlaySelect.innerHTML = numberFields.map(f=>`<option value="${f}">${f}</option>`).join('');
   if(numberFields.includes(prevSelection)) overlaySelect.value = prevSelection;
@@ -1109,10 +1401,9 @@ function renderChart(){
       return [x,y];
     });
     const overlayPath = opts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    const overlayAreaPath = overlayPath + ` L${opts[opts.length-1][0].toFixed(1)},${H} L${opts[0][0].toFixed(1)},${H} Z`;
-    overlaySvg = `<path d="${overlayAreaPath}" fill="url(#areaGradOrange)"/>
-      <path d="${overlayPath}" fill="none" stroke="${CHART_ORANGE}" stroke-width="2.5" stroke-linejoin="round"/>
-      <circle cx="${opts[opts.length-1][0]}" cy="${opts[opts.length-1][1]}" r="3.5" fill="${CHART_ORANGE}"/>`;
+    // a possible signal, not a second headline: thinner and softer than the weight line, with no shading of its own
+    overlaySvg = `<path d="${overlayPath}" fill="none" stroke="${CHART_ORANGE}" stroke-opacity="0.7" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${opts[opts.length-1][0]}" cy="${opts[opts.length-1][1]}" r="2.5" fill="${CHART_ORANGE}" fill-opacity="0.8"/>`;
   }
 
   const svg = document.getElementById('chart-svg');
@@ -1121,10 +1412,6 @@ function renderChart(){
       <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="${CHART_BRAND}" stop-opacity="0.04"/>
         <stop offset="100%" stop-color="${CHART_BRAND}" stop-opacity="0"/>
-      </linearGradient>
-      <linearGradient id="areaGradOrange" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${CHART_ORANGE}" stop-opacity="0.06"/>
-        <stop offset="100%" stop-color="${CHART_ORANGE}" stop-opacity="0"/>
       </linearGradient>
     </defs>
     <path d="${areaPath}" fill="url(#areaGrad)"/>
@@ -1157,31 +1444,239 @@ function renderGoalPills(){
   const el = document.getElementById('goal-pills-list');
   const goals = allGoalColumns();
   if(goals.length===0){
-    el.innerHTML = `<div class="sub">No Y/N Daily Goal columns mapped yet.</div>`;
+    el.innerHTML = `<div class="disp-empty">Map a Yes/No column on the Data tab and your goals will appear here.</div>`;
     return;
   }
-  // switches, not pills — same on/off pattern as KPI active-toggle and the
-  // enable-goals toggle above, instead of a third visual language for on/off
-  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">` + goals.map(g=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;">
-      <span style="font-size:13px;font-weight:700;">${g.field}</span>
+  el.innerHTML = `<div class="sw-list">` + goals.map(g=>`
+    <div class="sw-row">
+      <span>${escAttr(g.field)}</span>
       <label class="switch"><input type="checkbox" ${g.visible?'checked':''} onchange="toggleGoalVisible(${g.si},${g.ci})"><span class="slider"></span></label>
     </div>
   `).join('') + `</div>`;
 }
+
+// Trend comparison signals — which Number fields can be laid over the weight trend. Everything is on by
+// default, so a field mapped later shows up automatically; turning one off only removes it from this
+// overlay (the field stays in the data, in the coach export, and available for KPIs).
+function trendSignalFields(){
+  const off = state.trendSignalsOff || [];
+  return fieldsOfType('Number').filter(f => !off.includes(f));
+}
+function toggleTrendSignal(f){
+  const off = state.trendSignalsOff = state.trendSignalsOff || [];
+  const i = off.indexOf(f);
+  if(i >= 0) off.splice(i,1); else off.push(f);
+  renderTrendSignals();
+  renderChart();
+}
+function renderTrendSignals(){
+  const el = document.getElementById('trend-signal-list');
+  const count = document.getElementById('trend-signals-count');
+  if(!el) return;
+  const all = fieldsOfType('Number');
+  const on = trendSignalFields();
+  if(!all.length){
+    el.innerHTML = `<div class="disp-empty">Map a number field on the Data tab and it will be available to compare here.</div>`;
+    count.textContent = '';
+    return;
+  }
+  count.textContent = `${on.length} of ${all.length} available on the trend`;
+  el.innerHTML = `<div class="sw-list">` + all.map(f=>`
+    <div class="sw-row">
+      <span>${escAttr(f)}</span>
+      <label class="switch"><input type="checkbox" ${on.includes(f)?'checked':''} onchange="toggleTrendSignal('${escAttr(f).replace(/'/g,"\\'")}')"><span class="slider"></span></label>
+    </div>
+  `).join('') + `</div>`
+  + (on.length ? '' : `<div class="disp-empty" style="margin-top:12px;">Turn on a field to compare it against your weight trend.</div>`);
+}
+
 function toggleGoalsEnabled(){
   state.goalsEnabled = document.getElementById('goals-enabled-toggle').checked;
   renderTargets();
 }
-const COACH_PROFILE_FIELDS = ['dob','height','programStartDate','startingWeight','goalWeight','programHistory','targetsAndThresholds'];
+const COACH_PROFILE_FIELDS = ['dob','sex','programStartDate','startingWeight','goalWeight','programHistory','notes'];
+// ---- height: feet + inches in, one string out (6'1"). Older free text ("6 foot", "73", 5'10") is read back in.
+function parseHeight(raw){
+  const t = String(raw == null ? '' : raw).trim();
+  if(!t) return null;
+  let m = t.match(/^(\d{1,2})\s*(?:'|\u2032|ft\.?|feet|foot)\s*(?:(\d{1,2})\s*(?:"|\u2033|in\.?|inch|inches)?)?$/i);
+  if(m){ const ft = +m[1], inch = m[2] ? +m[2] : 0; return (ft >= 1 && ft <= 9 && inch <= 11) ? { ft, inch } : null; }
+  m = t.match(/^(\d{1,3})\s*(?:"|\u2033|in\.?|inch|inches)$/i);
+  if(m){ const total = +m[1]; return (total >= 12 && total <= 107) ? { ft: Math.floor(total / 12), inch: total % 12 } : null; }
+  m = t.match(/^(\d{1,3})$/);
+  if(m){ const n = +m[1]; if(n <= 9) return { ft: n, inch: 0 }; if(n >= 36 && n <= 107) return { ft: Math.floor(n / 12), inch: n % 12 }; }
+  return null;
+}
+function updateHeight(){
+  const ftEl = document.getElementById('cp-heightFt'), inEl = document.getElementById('cp-heightIn');
+  if(!ftEl || !inEl) return;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const ft = ftEl.value === '' ? null : clamp(Math.round(+ftEl.value), 3, 8);
+  const inch = inEl.value === '' ? 0 : clamp(Math.round(+inEl.value), 0, 11);
+  state.coachProfile.height = ft === null ? '' : ft + "'" + inch + '"';
+}
+function normalizeHeightFields(){
+  // on blur: show the corrected values (e.g. 14 inches becomes 11) so what is on screen is what is saved
+  const h = parseHeight(state.coachProfile.height);
+  const ftEl = document.getElementById('cp-heightFt'), inEl = document.getElementById('cp-heightIn');
+  if(ftEl) ftEl.value = h ? h.ft : '';
+  if(inEl) inEl.value = h ? h.inch : '';
+}
 function renderCoachProfile(){
   COACH_PROFILE_FIELDS.forEach(f=>{
     const el = document.getElementById('cp-'+f);
     if(el) el.value = state.coachProfile[f] || '';
   });
+  normalizeHeightFields();
+  renderTargetsConfig();
+  renderCoachStyle();
 }
 function updateCoachProfile(field, val){
   state.coachProfile[field] = val; // text inputs — no re-render, avoids losing focus mid-keystroke
+}
+
+/* ------------------------------------------------------------------------
+   Targets — three lenses (At least / At most / Between) plus "Suggest for me".
+   The lens decides which values appear. A day that meets a lens is a Yes, so
+   this lines up with the Y/N mapping: a single threshold, nothing more.
+   ------------------------------------------------------------------------ */
+const TARGET_SHAPES = [
+  { v:'atleast', t:'At least' },
+  { v:'atmost',  t:'At most' },
+  { v:'between', t:'Between' },
+  { v:'suggest', t:'Suggest for me' }
+];
+function targetsList(){
+  if(!Array.isArray(state.coachProfile.targets)) state.coachProfile.targets = [];
+  return state.coachProfile.targets;
+}
+function renderTargetsConfig(){
+  const el = document.getElementById('targets-cfg-list');
+  if(!el) return;
+  const fields = fieldsOfType('Number');
+  const list = targetsList();
+  if(!list.length){
+    el.innerHTML = `<div class="disp-empty">Add a target for something you track, such as steps or protein.</div>`;
+    return;
+  }
+  el.innerHTML = list.map((t,i)=>{
+    const opts = fields.includes(t.field) || !t.field ? fields : fields.concat([t.field]);
+    const values = t.shape === 'between'
+      ? `<span class="tg-vals"><span class="mut">Low</span><input type="number" value="${escAttr(t.low ?? '')}" oninput="updateTarget(${i},'low',this.value)"/>
+           <span class="mut">High</span><input type="number" value="${escAttr(t.high ?? '')}" oninput="updateTarget(${i},'high',this.value)"/></span>`
+      : (t.shape === 'suggest'
+          ? `<span class="tg-suggest">Your coach will propose a starting point from your data.</span>`
+          : `<span class="tg-vals"><input type="number" value="${escAttr(t.value ?? '')}" oninput="updateTarget(${i},'value',this.value)"/></span>`);
+    return `<div class="tg-grid tg-row">
+      <span><select class="type-select" onchange="updateTarget(${i},'field',this.value)">
+        ${opts.map(f=>`<option value="${escAttr(f)}" ${f===t.field?'selected':''}>${escAttr(f)}</option>`).join('')}
+      </select></span>
+      <span><select class="type-select" onchange="setTargetShape(${i},this.value)">
+        ${TARGET_SHAPES.map(s=>`<option value="${s.v}" ${s.v===t.shape?'selected':''}>${s.t}</option>`).join('')}
+      </select></span>
+      ${values}
+      <span><select class="type-select" onchange="updateTarget(${i},'per',this.value)">
+        <option value="day" ${t.per==='week'?'':'selected'}>Day</option>
+        <option value="week" ${t.per==='week'?'selected':''}>Week</option>
+      </select></span>
+      <span style="text-align:right;"><button class="remove-btn" onclick="removeTarget(${i})">remove</button></span>
+    </div>`;
+  }).join('');
+}
+function addTarget(){
+  const used = new Set(targetsList().map(t=>t.field));
+  const fields = fieldsOfType('Number');
+  const field = fields.find(f=>!used.has(f)) || fields[0] || '';
+  targetsList().push({ field, shape:'atleast', value:'', per:'day' });
+  renderTargetsConfig();
+}
+function updateTarget(i, key, val){ targetsList()[i][key] = val; }   // typing: no re-render
+function setTargetShape(i, shape){ targetsList()[i].shape = shape; renderTargetsConfig(); }
+function removeTarget(i){ targetsList().splice(i,1); renderTargetsConfig(); }
+
+/* ------------------------------------------------------------------------
+   Coach style — five independent dials, each stored 1 to 5. Every stop has a short
+   label and one sentence; the same sentences build the summary underneath, so what
+   you read is what the coach is told. The defaults are where the coach sits today.
+   Method and safety (weigh weeks over single days, no extreme restriction, no
+   overhauls) are not dials and are never changed from here.
+   ------------------------------------------------------------------------ */
+const COACH_DIALS = [
+  { key:'warmth', group:'How it sounds', name:'Warmth', def:4, about:"How much encouragement and positivity your coach brings to what it says.", lowTip:"Toward Factual, expect your coach to stick to the numbers and what they show, with less cheerleading.", highTip:"Toward Encouraging, expect your coach to lead with what's going well and keep a warmer, more upbeat tone.", stops:[
+    ['Factual',   'sticks to the numbers and what they show, without cheerleading'],
+    ['Mostly factual',   'keeps to the facts and adds a light note of encouragement'],
+    ['Even-handed',      'balances what is going well with what needs attention, in an even tone'],
+    ['Warm',      'leads with what is going well and keeps a warm, positive tone'],
+    ['Encouraging', 'celebrates your progress and keeps an upbeat tone, even through a rough week'] ] },
+  { key:'delivery', group:'How it sounds', name:'Delivery', def:4, about:"How your coach handles the harder parts, from plain-spoken to gentle.", lowTip:"Toward Blunt, expect your coach to say plainly what isn't working, with less softening.", highTip:"Toward Gentle, expect your coach to introduce harder points with care and frame each one around what you can do next.", stops:[
+    ['Blunt', 'says plainly what the data shows, including what is not working, without softening it'],
+    ['Direct',     'says what it sees clearly and keeps the wording short and to the point'],
+    ['Balanced',   'names what the data shows, good and hard, in an even, matter-of-fact way'],
+    ['Considerate',     'names what the data shows, including the harder parts, and frames it kindly'],
+    ['Gentle','introduces harder points with care and frames each one around what you can do next'] ] },
+  { key:'directive', group:'How it pushes', name:'Directiveness', def:2, about:"How much your coach tells you what to do, versus acting as a sounding board.", lowTip:"Toward Sounding board, expect your coach to reflect the week back and ask what you think before suggesting anything.", highTip:"Toward Directive, expect your coach to give you a specific plan for the week and what to do first.", stops:[
+    ['Sounding board',      'reflects the week back and asks what you think before suggesting anything'],
+    ['Leans consultative',  'offers a recommendation with its reasoning and leaves room for your take'],
+    ['Balanced',            'gives a clear recommendation and explains why, while welcoming your input'],
+    ['Leans directive',     'gives a clear recommendation for the week and expects you to run with it'],
+    ['Directive','gives you a specific plan for the week and what to do first'] ] },
+  { key:'pace', group:'How it pushes', name:'Pace', def:2, about:"How quickly your coach pushes for results.", lowTip:"Toward Measured, expect your coach to take things one small change at a time and let each one settle before the next.", highTip:"Toward Expedited, expect your coach to push for faster results with a real stretch each week, always keeping it sustainable and safe.", stops:[
+    ['Measured', 'suggests a single, very small change and lets it settle before the next'],
+    ['Gradual',      'suggests one or two small, sustainable changes at a time, starting with what is working'],
+    ['Steady',        'suggests a couple of meaningful changes that fit your current routine'],
+    ['Brisk',         'suggests a few stretching changes and moves at a quicker pace, while staying realistic about your week'],
+    ['Expedited',     'pushes for faster results with a real stretch each week, always keeping it sustainable and safe'] ] },
+  { key:'accountability', group:'How it pushes', name:'Accountability', def:2, about:"How closely your coach holds you to last week's focus.", lowTip:"Toward Light, expect your coach to mention last week's focus in passing and move on.", highTip:"Toward Firm, expect your coach to hold you to last week's focus and ask what will change if it slipped, always on your side.", stops:[
+    ['Light',    'mentions last week\'s focus in passing and moves on'],
+    ['Friendly nudge',    'checks last week\'s focus against what happened and encourages you from there'],
+    ['Clear check-in',    'reviews last week\'s focus against what happened and talks plainly about the gap'],
+    ['Close follow-up',              'holds you to last week\'s focus and asks what will change if it slipped'],
+    ['Firm',   'holds you firmly to last week\'s focus and corrects course directly, always on your side'] ] }
+];
+function coachDialValue(d){
+  const s = (state.coachProfile && state.coachProfile.style) || {};
+  const v = s[d.key];
+  return Number.isInteger(v) && v >= 1 && v <= 5 ? v : d.def;
+}
+function coachStyleIsDefault(){ return COACH_DIALS.every(d => coachDialValue(d) === d.def); }
+function setCoachDial(key, v){
+  state.coachProfile.style = Object.assign({}, state.coachProfile.style || {}, { [key]: v });
+  renderCoachStyle();
+}
+function resetCoachStyle(){
+  delete state.coachProfile.style;
+  renderCoachStyle();
+}
+function coachStyleSummary(){
+  const frag = d => d.stops[coachDialValue(d) - 1][1];
+  const [w, de, di, p, a] = COACH_DIALS.map(frag);
+  return `Your coach ${w}. It ${de}. It ${di}. It ${p}. It ${a}.`;
+}
+function renderCoachStyle(){
+  const el = document.getElementById('coach-dials');
+  if(!el) return;
+  // each dial is a setting row: what it is and what the current choice means on the left,
+  // the control (with its two ends labeled beneath) on the right
+  el.innerHTML = COACH_DIALS.map(d=>{
+    const v = coachDialValue(d);
+    const stop = d.stops[v - 1];
+    return `<div class="dial">
+      <div class="dial-text">
+        <div class="dial-name">${d.name}<span class="tip tip-i" tabindex="0" aria-label="About ${d.name}">ⓘ<span class="tip-body"><span class="tip-about">${d.about}</span><span class="tip-line"><b>←</b> ${d.lowTip}</span><span class="tip-line"><b>→</b> ${d.highTip}</span></span></span></div>
+        <div class="dial-score">${v} · ${stop[0]}</div>
+        <div class="dial-desc">Your coach ${stop[1]}.</div>
+      </div>
+      <div class="dial-ctl">
+        <div class="dial-track" role="radiogroup" aria-label="${d.name}">
+          ${d.stops.map((x,i)=>`<button class="dial-pt ${i+1===v?'on':''}" role="radio" aria-checked="${i+1===v}" aria-label="${i+1}, ${x[0]}" onclick="setCoachDial('${d.key}',${i+1})"></button>`).join('')}
+        </div>
+        <div class="dial-ends"><span>${d.stops[0][0]}</span><span>${d.stops[4][0]}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('coach-summary').innerHTML =
+    `<div class="coach-sum-head">How your coach will sound</div><div class="coach-sum-body">${coachStyleSummary()}</div>`;
+  document.getElementById('coach-style-reset').style.display = coachStyleIsDefault() ? 'none' : '';
 }
 
 /* ========================================================================
@@ -1515,12 +2010,45 @@ async function manualRefresh(){
   }
 }
 
+// Session-only UI state lives on the config objects with a leading underscore. None of it belongs in the saved
+// file: detect messages, the "detecting" flag, an open drawer, a half-made choice. (_mappingConfirmed is real data
+// and is kept.) Everything matching this pattern is dropped when saving and when loading.
+const TRANSIENT_KEY = /^_(status|detect|autoType$|open$|choice$|mappingExpanded$)/;
+function stateForSave(){
+  return JSON.parse(JSON.stringify(state, (k, v) => (typeof k === 'string' && TRANSIENT_KEY.test(k)) ? undefined : v));
+}
+
+// A detect result is a check that just ran. Success confirms itself and fades. A failure, or a simulated preview,
+// stays (amber) until the next attempt because it needs the person's attention. The row contents ride in a tooltip.
+const DETECT_FADE_MS = 6000;
+function setDetectStatus(si, kind, source, count, rowNum, label, row){
+  const src = state.sources[si];
+  if(!src) return;
+  const key = '_status' + kind;
+  const ok = source !== 'simulated';
+  const msg = ok
+    ? `Found ${count} ${label} in row ${rowNum}.`
+    : "Couldn't read this sheet, so this is a simulated preview. Check that the share link is public and your local server is running.";
+  src[key] = msg;
+  src[key + 'Live'] = ok;
+  src[key + 'Detail'] = `Row ${rowNum}: [${row.slice(0,6).map(v=>v||'∅').join(' | ')}]`;
+  if(ok){
+    setTimeout(()=>{
+      if(src[key] !== msg) return; // a newer check has replaced it
+      delete src[key]; delete src[key + 'Live']; delete src[key + 'Detail'];
+      const el = document.getElementById('st-' + si + '-' + kind);
+      if(el) el.remove();
+    }, DETECT_FADE_MS);
+  }
+}
+
 async function detectHeaders(si){
   const src = state.sources[si];
   if(!src.headerRow){
     await appDialog({title:'Header row needed', message:'Set a header row number first, or leave it blank if your sheet has no headers.'});
     return;
   }
+  invalidateSheetText(src.url);
   src._statusHeaders = 'Detecting headers…';
   renderSources();
 
@@ -1531,15 +2059,13 @@ async function detectHeaders(si){
     if(existing){
       if(val) existing.field = val; // only overwrite label if this header cell actually has text
     } else {
-      src.columns.push({ letter: targetLetter, sample: '', field: val || `Column ${targetLetter}`, type: 'Number' });
+      src.columns.push({ letter: targetLetter, sample: '', field: val || `Column ${targetLetter}`, type: 'Number', _autoType: true });
     }
   });
 
   // show the raw row we actually pulled, so a hidden-row offset is visible immediately
   const preview = row.slice(0,6).map(v=>v||'∅').join(' | ');
-  src._statusHeaders = statusText(source, row.filter(v=>v).length, src.headerRow, 'headers')
-    + ` Raw row ${src.headerRow} content: [${preview}]`;
-  src._statusHeadersLive = source !== 'simulated';
+  setDetectStatus(si, 'Headers', source, row.filter(v=>v).length, src.headerRow, 'headers', row);
   renderSources(); renderTrackedMetrics();
 }
 
@@ -1553,6 +2079,7 @@ async function detectHeaders(si){
 // needs to change, that's a deliberate edit via the Type dropdown, not an automatic one.
 async function detectData(si){
   const src = state.sources[si];
+  invalidateSheetText(src.url);
   src._statusData = 'Detecting data…';
   renderSources();
 
@@ -1562,108 +2089,342 @@ async function detectData(si){
     const existing = src.columns.find(c=>c && c.letter===targetLetter);
     if(existing){
       existing.sample = val || '(empty)';
+      // a column Detect headers just created, never edited by the user, is still a placeholder type —
+      // let the first real data row decide. A column the user has typed themselves is left alone.
+      if(existing._autoType){
+        existing.type = guessType(val);
+        delete existing._autoType;
+        if(existing.type === 'Y/N Daily Goal'){ existing._mappingConfirmed = false; existing._mappingExpanded = false; }
+      }
     } else {
       src.columns.push({ letter: targetLetter, sample: val || '(empty)', field: `Column ${targetLetter}`, type: guessType(val) });
     }
   });
-  src._statusData = statusText(source, row.filter(v=>v).length, src.startRow, 'columns')
-    + ` Raw row ${src.startRow} content: [${row.slice(0,6).map(v=>v||'∅').join(' | ')}]`;
-  src._statusDataLive = source !== 'simulated';
+  { const dc = src.columns.filter(c=>c && c.type==='Date'); if(dc.length && !dc.some(c=>c.isJoinKey)) dc[0].isJoinKey = true; }
+  setDetectStatus(si, 'Data', source, row.filter(v=>v).length, src.startRow, 'columns', row);
   renderSources(); renderTrackedMetrics();
+}
+
+/* ------------------------------------------------------------------------
+   Data tab v2 — every sheet is the same three steps:
+     1 Source   — name, URL, rows, detect
+     2 Columns  — field name, Type, Mapping (identical for baseline and supplemental)
+     3 Last     — baseline: which Date column sets the Timeline
+                  supplemental: which Date column Connects to the baseline
+   The connection comes last on purpose: you can't know how many date columns a
+   sheet has until its columns are loaded.
+   ------------------------------------------------------------------------ */
+function escAttr(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function fmtDayKey(k){ const p = k.split('-'); return `${+p[1]}/${+p[2]}/${p[0]}`; }
+
+// ---- live sheet text, used only to count how many baseline days a date column lines up with ----
+// Dates are keyed exactly the way server.js keys them (new Date(raw) -> ISO day), so a count here predicts
+// what Refresh Data will really do. The text comes from the same local proxy Detect uses, and is fetched
+// only while the Data tab is actually on screen.
+const SHEET_TEXT = {};   // url -> { state:'loading'|'ok'|'error', rows }
+function letterToColIndex(letter){ let n = 0; for(const ch of String(letter)) n = n * 26 + (ch.charCodeAt(0) - 64); return n - 1; }
+function serverDateKey(raw){ if(!raw) return null; const d = new Date(raw); if(isNaN(d)) return null; return d.toISOString().slice(0,10); }
+function dataTabOnScreen(){
+  const set = document.getElementById('settings-view');
+  return !!set && set.style.display === 'block' && activeSettingsTab === 'data';
+}
+let _sourcesRenderTimer = null;
+function renderSourcesWhenIdle(){
+  // a late sheet response must never rebuild the form out from under someone who is typing in it
+  const list = document.getElementById('sources-list');
+  if(list && list.contains(document.activeElement) && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)){
+    clearTimeout(_sourcesRenderTimer);
+    _sourcesRenderTimer = setTimeout(renderSourcesWhenIdle, 700);
+    return;
+  }
+  renderSources();
+}
+function sheetText(url){
+  const key = (url || '').trim();
+  if(!key) return null;
+  let e = SHEET_TEXT[key];
+  if(e) return e;
+  if(!dataTabOnScreen()) return { state: 'idle', rows: null };
+  e = SHEET_TEXT[key] = { state: 'loading', rows: null };
+  fetch(`${PROXY_BASE}/sheet-csv?url=${encodeURIComponent(key)}`)
+    .then(r => r.ok ? r.text() : Promise.reject(new Error('status ' + r.status)))
+    .then(t => { e.rows = t.split(/\r?\n/).map(l => parseCSVLine(l)); e.state = 'ok'; })
+    .catch(err => { e.state = 'error'; e.error = String(err && err.message || err); })
+    .then(() => renderSourcesWhenIdle());
+  return e;
+}
+function invalidateSheetText(url){ delete SHEET_TEXT[(url || '').trim()]; }
+
+// normalized date keys held in one Date column of a sheet (null until its text has loaded)
+function sourceDateKeys(src, col){
+  const e = sheetText(src.url);
+  if(!e || e.state !== 'ok' || !col) return null;
+  const idx = letterToColIndex(col.letter), out = new Set();
+  for(let r = Math.max(0, (src.startRow || 1) - 1); r < e.rows.length; r++){
+    const k = serverDateKey((e.rows[r] || [])[idx]);
+    if(k) out.add(k);
+  }
+  return out;
+}
+function baselineSource(){ return state.sources.find(s=>s.isAnchor) || null; }
+function timelineColumn(src){
+  return src.columns.find(c=>c && c.type==='Date' && c.isJoinKey) || src.columns.find(c=>c && c.type==='Date') || null;
+}
+function baselineKeys(){
+  const b = baselineSource();
+  return b ? sourceDateKeys(b, timelineColumn(b)) : null;
+}
+// one entry per Date column in a supplemental sheet, with how many baseline days it lines up with
+function connectionCandidates(src){
+  const base = baselineKeys();
+  const own = sheetText(src.url);
+  const bsrc = baselineSource();
+  const baseText = bsrc ? sheetText(bsrc.url) : null;
+  const status = !own ? 'idle' : (own.state !== 'ok' ? own.state : (baseText && baseText.state !== 'ok' ? baseText.state : 'ok'));
+  return src.columns.map((c,ci)=>({c,ci})).filter(x=>x.c && x.c.type==='Date').map(({c,ci})=>{
+    const keys = sourceDateKeys(src, c);
+    if(!keys || !base) return { ci, c, matched:null, total: base ? base.size : null, state: status };
+    let m = 0; base.forEach(k=>{ if(keys.has(k)) m++; });
+    return { ci, c, matched:m, total: base.size, state:'ok' };
+  });
+}
+function bestCandidate(cands){
+  let best = null;
+  cands.forEach(x=>{ if(x.matched!=null && (!best || x.matched > best.matched)) best = x; });
+  return best;
+}
+function connectedColumnOf(src){
+  return src.columns.find(c=>c && c.type==='Date' && c.isJoinKey) || null;
+}
+
+function toggleSourceOpen(si){
+  const src = state.sources[si];
+  const open = src._open === undefined ? !src.connected : src._open;
+  src._open = !open;
+  renderSources();
+}
+function chooseConnect(si, ci){ state.sources[si]._choice = ci; renderSources(); }
+function connectSource(si){
+  const src = state.sources[si];
+  const cands = connectionCandidates(src);
+  const choice = src._choice != null ? src._choice : (bestCandidate(cands) || cands[0] || {}).ci;
+  if(choice == null) return;
+  src.columns.forEach((c,i)=>{ if(c && c.type==='Date') c.isJoinKey = (i===choice); });
+  src.connected = true;
+  src._open = false;
+  delete src._choice;
+  renderSources();
+}
+function setTimelineColumn(si, ci){
+  state.sources[si].columns.forEach((c,i)=>{ if(c && c.type==='Date') c.isJoinKey = (i===+ci); });
+  renderSources();
 }
 
 function renderSources(){
   const container = document.getElementById('sources-list');
-  container.innerHTML = state.sources.map((src, si)=>`
-    <div class="card source-card">
-      <button class="source-remove-btn" onclick="removeSource(${si})" title="Remove this source">✕</button>
-      <div class="source-grid">
-        <div class="source-main">
-          <div class="source-field">
-            <span class="fieldlabel">SHEET NAME${src.isAnchor?'<span class="anchor-badge">JOIN ANCHOR</span>':''}</span>
-            <input type="text" class="name-input" placeholder="Name this sheet — e.g. Weight Tracker"
-              value="${src.name}" oninput="updateSourceField(${si},'name',this.value)"/>
-          </div>
-          <div class="source-field">
-            <span class="fieldlabel">PUBLIC SHARE URL</span>
-            <input type="text" class="url-input" placeholder="Paste the sheet's public share link"
-              value="${src.url}" oninput="updateSourceField(${si},'url',this.value)"/>
-          </div>
-        </div>
-        <div class="source-side">
-          <div class="rowbox">
-            <span class="fieldlabel">HEADER ROW (optional)</span>
-            <input type="number" placeholder="none" value="${src.headerRow ?? ''}"
-              oninput="updateSourceField(${si},'headerRow',this.value)"/>
-          </div>
-          <div class="rowbox">
-            <span class="fieldlabel">DATA STARTS AT ROW</span>
-            <input type="number" value="${src.startRow}" oninput="updateSourceField(${si},'startRow',this.value)"/>
-          </div>
-          <button class="anchor-link ${src.isAnchor?'is-anchor':''}" onclick="setAnchor(${si})">
-            ${src.isAnchor?'Join anchor':'Set as join anchor'}
-          </button>
-        </div>
-      </div>
-
-      <div class="detect-row">
-        <button class="small-btn" style="margin-top:0;" onclick="detectHeaders(${si})">⟳ Detect headers</button>
-        <button class="small-btn" style="margin-top:0;" onclick="detectData(${si})">⟳ Detect data</button>
-      </div>
-      ${src._statusHeaders ? `<div class="sub" style="margin-top:4px; color:${src._statusHeadersLive?'var(--good)':'var(--muted)'};">${src._statusHeaders}</div>` : ''}
-      ${src._statusData ? `<div class="sub" style="margin-top:4px; color:${src._statusDataLive?'var(--good)':'var(--muted)'};">${src._statusData}</div>` : ''}
-
-      ${src.columns.filter(c=>c).length ? `
-      <div class="col-table">
-        <div class="col-row-head col-grid-template">
-          <div>Column</div><div>Sample value</div><div>Field name</div><div>Type</div><div>Mapping</div><div></div>
-        </div>
-        ${src.columns.map((c,ci)=>c ? renderColumnRow(si,ci,c) : '').join('')}
-      </div>
-      <button class="small-btn" onclick="addColumn(${si})">+ Map column manually</button>
-      ` : `<div class="sub" style="margin-top:12px;">No columns yet — detect from the sheet, or map manually.</div>
-      <button class="small-btn" onclick="addColumn(${si})">+ Map column manually</button>`}
-    </div>
-  `).join('');
+  container.innerHTML = state.sources.map((src, si)=>renderSourceCard(src, si)).join('');
 }
-function renderColumnRow(si,ci,c){
-  // each row is its own bordered "card" sharing the same grid template as the
-  // header — a drawer opening below one row's grid line never affects any other
-  // row's height or alignment, since there's no shared table row underneath it.
-  const dateJoinButton = c.type==='Date' ? `<button class="anchor-link ${c.isJoinKey?'is-anchor':''}" style="display:block;margin-top:6px;" onclick="setJoinColumn(${si},${ci})">
-    ${c.isJoinKey?'✓ Join column':'Set as join column'}
-  </button>` : '';
 
-  const mappingIndicator = c.type==='Y/N Daily Goal' ? renderYesNoMappingIndicator(si,ci,c) : '';
-  const drawer = (c.type==='Y/N Daily Goal' && c._mappingExpanded) ? renderYesNoMappingDrawer(si,ci,c) : '';
+function colMappingNeedsAttention(c){ return c && c.type==='Y/N Daily Goal' && !c._mappingConfirmed; }
 
-  return `<div class="col-row-card">
-    <div class="col-row col-grid-template">
-      <div class="col-letter">${c.letter}</div>
-      <div class="col-sample">${c.sample}</div>
-      <div><input type="text" class="field-name" value="${c.field}" oninput="updateColumnField(${si},${ci},'field',this.value)"/></div>
-      <div>
-        <select class="type-select" onchange="updateColumnField(${si},${ci},'type',this.value)">
-          ${TYPE_OPTIONS.map(t=>`<option ${t===c.type?'selected':''}>${t}</option>`).join('')}
-        </select>
-        ${dateJoinButton}
+function renderSourceCard(src, si){
+  const base = !!src.isAnchor;
+  const hasCols = src.columns.some(c=>c);
+  const dateCols = src.columns.map((c,ci)=>({c,ci})).filter(x=>x.c && x.c.type==='Date');
+  const connected = base || !!src.connected;
+  const open = base || (src._open === undefined ? !connected : src._open);
+  const title = src.name && src.name.trim() ? escAttr(src.name) : 'Untitled sheet';
+  const chip = base ? `<span class="chip base">Baseline</span>` : `<span class="chip">Supplemental</span>`;
+
+  // collapsed, connected supplemental sheet — one line
+  if(!open){
+    const cc = connectedColumnOf(src);
+    const cand = connectionCandidates(src).find(x=>cc && x.c===cc);
+    const stat = cand && cand.matched != null
+      ? `<span class="ok">✓ ${cand.matched} of ${cand.total} days</span>` : '';
+    return `<div class="card source-card src-collapsed">
+      <div class="src-head" style="margin:0;">
+        <div class="src-id"><span class="src-title" id="src-title-${si}">${title}</span>${chip}</div>
+        <div class="src-sum">
+          <span class="sub">Connected on ${cc ? `Column ${cc.letter} · ${escAttr(cc.field)}` : 'a date column'}</span>
+          ${stat}
+          <button class="mini-btn" onclick="toggleSourceOpen(${si})">Edit</button>
+        </div>
       </div>
-      <div>${mappingIndicator}</div>
-      <div><button class="remove-btn" onclick="removeColumn(${si},${ci})">remove</button></div>
+    </div>`;
+  }
+
+  // ---- step state
+  const s1done = !!(src.url && src.url.trim()) && hasCols;
+  const s2done = hasCols && !src.columns.some(colMappingNeedsAttention);
+  const s3done = base ? dateCols.length > 0 : connected;
+  const firstOpen = !s1done ? 1 : (!s2done ? 2 : (!s3done ? 3 : 0));
+  const stepN = (n, done) => `<span class="step-n ${done ? 'done' : (firstOpen===n ? 'now' : '')}">${done ? '✓' : n}</span>`;
+
+  // ---- header right side
+  let headRight = '';
+  if(!base && !connected) headRight = `<span class="src-warn">Not connected: this sheet isn't in your data yet</span>`;
+  if(!base && connected) headRight = `<button class="mini-btn" onclick="toggleSourceOpen(${si})">Collapse</button>`;
+  const removeBtn = `<button class="src-x" onclick="removeSource(${si})" title="Remove this sheet" aria-label="Remove this sheet">✕</button>`;
+
+  // ---- step 1: source
+  const statusLine = kind => {
+    const m = src['_status' + kind];
+    if(!m) return '';
+    const working = /…$/.test(m);
+    const cls = working ? '' : (src['_status' + kind + 'Live'] ? ' src-status-ok' : ' src-status-warn');
+    return `<div class="sub src-status${cls}" id="st-${si}-${kind}" title="${escAttr(src['_status' + kind + 'Detail'] || '')}">${escAttr(m)}</div>`;
+  };
+  const status = statusLine('Headers') + statusLine('Data');
+  const step1 = `<div class="step">
+      <div class="step-head">${stepN(1, s1done)}<span class="step-name">Source</span></div>
+      <div class="fld-grid g12">
+        <div class="fld"><label class="fld-label">Sheet name</label>
+          <input type="text" placeholder="Name this sheet — e.g. Weight Tracker" value="${escAttr(src.name)}" oninput="updateSourceField(${si},'name',this.value)"/></div>
+        <div class="fld"><label class="fld-label">Public share URL</label>
+          <input type="text" class="url-input" placeholder="Paste the sheet's public share link" value="${escAttr(src.url)}" oninput="updateSourceField(${si},'url',this.value)"/></div>
+      </div>
+      <div class="fld-grid g-rows">
+        <div class="fld"><label class="fld-label">Header row <span class="mut">(optional)</span></label>
+          <input type="number" placeholder="none" value="${src.headerRow ?? ''}" oninput="updateSourceField(${si},'headerRow',this.value)"/></div>
+        <div class="fld"><label class="fld-label">Data starts at row</label>
+          <input type="number" value="${src.startRow}" oninput="updateSourceField(${si},'startRow',this.value)"/></div>
+        <div class="detect-btns">
+          <button class="mini-btn" onclick="detectHeaders(${si})">⟳ Detect headers</button>
+          <button class="mini-btn" onclick="detectData(${si})">⟳ Detect data</button>
+        </div>
+      </div>
+      ${status}
+    </div>`;
+
+  // ---- step 2: columns
+  const rows = src.columns.map((c,ci)=>c ? renderColumnRow(si,ci,c,base,connected) : '').join('');
+  const step2 = `<div class="step ${hasCols ? '' : 'locked'}">
+      <div class="step-head">${stepN(2, s2done)}<span class="step-name">Columns</span>${hasCols ? `<span class="mut">${src.columns.filter(c=>c).length} mapped</span>` : ''}</div>
+      ${hasCols ? `
+      <div class="cg cg-groups"><span class="cg-group" style="grid-column:1/3;">From your sheet</span><span class="cg-group" style="grid-column:3/7;">In Trim</span></div>
+      <div class="cg cg-head"><span>Col</span><span>Sample</span><span>Field name</span><span>Type</span><span>Mapping</span><span></span></div>
+      ${rows}` : `<div class="sub">Appears once headers or data are detected from the sheet.</div>`}
+      <div style="margin-top:12px;"><button class="mini-btn" onclick="addColumn(${si})">+ Map column manually</button></div>
+    </div>`;
+
+  // ---- step 3
+  let step3;
+  if(base){
+    const col = timelineColumn(src);
+    const keys = col ? sourceDateKeys(src, col) : null;
+    const sorted = keys ? Array.from(keys).sort() : [];
+    const result = sorted.length
+      ? `<span class="ok">✓ ${sorted.length} days · ${fmtDayKey(sorted[0])} to ${fmtDayKey(sorted[sorted.length-1])}</span>`
+      : (() => { const t = sheetText(src.url); return t && t.state === 'loading' ? `<span class="mut">Checking…</span>` : (t && t.state === 'error' ? `<span class="mut">Couldn't read this sheet</span>` : ''); })();
+    step3 = `<div class="step ${dateCols.length ? '' : 'locked'}">
+      <div class="step-head">${stepN(3, s3done)}<span class="step-name">Timeline</span></div>
+      ${dateCols.length ? `
+      <div class="fld-grid g-tl">
+        ${dateCols.length > 1
+          ? `<select class="type-select" onchange="setTimelineColumn(${si}, this.value)">${dateCols.map(x=>`<option value="${x.ci}" ${x.c===col?'selected':''}>Column ${x.c.letter} · ${escAttr(x.c.field)}</option>`).join('')}</select>`
+          : `<div class="well-static">Column ${col.letter} · ${escAttr(col.field)}</div>`}
+        ${result}
+      </div>
+      <div class="sub" style="margin-top:8px;">The baseline's days are the days Trim shows.${dateCols.length > 1 ? ' This sheet has more than one date column — pick which one sets the timeline.' : ''}</div>`
+      : `<div class="sub">Needs a column typed as Date to set the timeline.</div>`}
+    </div>`;
+  } else {
+    const bsrc = baselineSource();
+    const bcol = bsrc ? timelineColumn(bsrc) : null;
+    if(!hasCols || !dateCols.length || !bcol){
+      const why = !hasCols ? 'Available after columns are mapped.'
+        : (!dateCols.length ? 'Needs a column typed as Date to line up with the baseline.' : "Set up the baseline's timeline first.");
+      step3 = `<div class="step locked"><div class="step-head">${stepN(3,false)}<span class="step-name">Connect to baseline</span></div><div class="sub">${why}</div></div>`;
+    } else {
+      const cands = connectionCandidates(src);
+      const best = bestCandidate(cands);
+      const current = connectedColumnOf(src);
+      const choice = src._choice != null ? src._choice
+        : (connected && current ? src.columns.indexOf(current) : (best ? best.ci : cands[0].ci));
+      const lead = cands.length > 1
+        ? `This sheet has ${cands.length} date columns. Pick the one that holds the same day as the baseline's <b>${escAttr(bcol.field)}</b>.`
+        : `This sheet has one date column. Confirm it holds the same day as the baseline's <b>${escAttr(bcol.field)}</b>.`;
+      const opts = cands.map(x=>{
+        const sel = x.ci === choice;
+        const pct = x.matched != null && x.total ? Math.round(x.matched / x.total * 100) : 0;
+        const cls = x.matched === 0 ? 'bad-t' : (pct >= 80 ? 'ok' : 'mid-t');
+        const bar = x.matched === 0 ? 'transparent' : (pct >= 80 ? 'var(--good)' : '#9A9FA8');
+        return `<div class="opt ${sel ? 'sel' : ''}" role="radio" aria-checked="${sel}" tabindex="0" onclick="chooseConnect(${si},${x.ci})" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();chooseConnect(${si},${x.ci});}">
+          <span class="rad"></span>
+          <span><b>Column ${x.c.letter}</b> · ${escAttr(x.c.field)}${best && best.ci === x.ci && x.matched ? '<span class="chip good">Best match</span>' : ''}</span>
+          <span class="opt-m"><span class="${cls}">${x.matched != null ? `${x.matched} of ${x.total} days` : (x.state==='loading' ? 'Checking…' : (x.state==='error' ? "Couldn't read this sheet" : '—'))}</span><span class="trk"><i style="width:${pct}%;background:${bar};"></i></span></span>
+        </div>`;
+      }).join('');
+      const chosen = cands.find(x=>x.ci===choice);
+      const zero = chosen && chosen.matched === 0
+        ? `<div class="sub warn-t" style="margin-top:10px;">No days line up, so only the baseline's data would show for this sheet. Check that both sheets write dates the same way.</div>` : '';
+      step3 = `<div class="step">
+        <div class="step-head">${stepN(3, s3done)}<span class="step-name">Connect to baseline</span></div>
+        <div class="sub" style="margin-bottom:4px;">${lead}</div>
+        <div role="radiogroup" aria-label="Date column that connects to the baseline">${opts}</div>
+        ${zero}
+        <div class="combine-note">
+          <div class="combine-title">How this sheet combines with the baseline</div>
+          <ul>
+            <li>The baseline sets which days Trim shows. This sheet adds its fields to those days.</li>
+            <li>If both sheets have a field with the same name, the baseline's value is used.</li>
+            <li>Days this sheet doesn't cover show as blank, not dropped.</li>
+            <li>Dates are matched by value, so the date columns can be named differently, but both sheets should write dates in the same format.${cands.length > 1 ? " Only the connecting date is used to line days up. Other date columns aren't brought in as fields." : ''}</li>
+          </ul>
+        </div>
+        <div class="step-actions">
+          <button class="mini-btn cta" onclick="connectSource(${si})">${connected ? 'Update connection' : 'Connect sheet'}</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  const footer = !base ? `<div class="src-foot"><button class="link-btn" onclick="setAnchor(${si})">Make this the baseline</button></div>` : '';
+  return `<div class="card source-card">
+    <div class="src-head">
+      <div class="src-id"><span class="src-title" id="src-title-${si}">${title}</span>${chip}</div>
+      <div class="src-sum">${headRight}${removeBtn}</div>
+    </div>
+    ${step1}${step2}${step3}${footer}
+  </div>`;
+}
+
+function renderColumnRow(si, ci, c, isBase, isConnected){
+  const isDate = c.type === 'Date';
+  let mapping = '';
+  if(c.type === 'Y/N Daily Goal') mapping = renderYesNoMappingIndicator(si, ci, c);
+  else if(isDate && c.isJoinKey) mapping = `<span class="chip ${isBase ? 'base' : (isConnected ? 'good' : '')}">${isBase ? 'Timeline' : (isConnected ? 'Connects' : 'Candidate')}</span>`;
+  else mapping = `<span class="mut">—</span>`;
+  const drawer = (c.type==='Y/N Daily Goal' && c._mappingExpanded) ? renderYesNoMappingDrawer(si, ci, c) : '';
+  return `<div class="cg-row">
+    <div class="cg cg-line">
+      <span class="col-letter">${c.letter}</span>
+      <span class="col-sample" title="${escAttr(c.sample)}">${escAttr(c.sample)}</span>
+      <span><input type="text" class="field-name" value="${escAttr(c.field)}" oninput="updateColumnField(${si},${ci},'field',this.value)"/></span>
+      <span><select class="type-select" onchange="updateColumnField(${si},${ci},'type',this.value)">
+        ${TYPE_OPTIONS.map(t=>`<option ${t===c.type?'selected':''}>${t}</option>`).join('')}
+      </select></span>
+      <span class="map-cell">${mapping}</span>
+      <span style="text-align:right;"><button class="remove-btn" onclick="removeColumn(${si},${ci})">remove</button></span>
     </div>
     ${drawer}
   </div>`;
 }
+
+
 function updateSourceField(si,field,val){
   if(field==='startRow') val = parseInt(val)||1;
   if(field==='headerRow') val = val==='' ? null : (parseInt(val)||null);
   state.sources[si][field] = val;
+  if(field==='name'){ const t = document.getElementById('src-title-'+si); if(t) t.textContent = val && val.trim() ? val : 'Untitled sheet'; }
   renderTrackedMetrics();
 }
 function updateColumnField(si,ci,field,val){
   const col = state.sources[si].columns[ci];
   col[field] = val;
   if(field==='type'){
+    delete col._autoType;
     // Date is the only type that can be a join column — keep isJoinKey in sync with that,
     // and auto-designate the first Date column in a source so join behavior never sits unset.
     if(val==='Date'){
@@ -1695,26 +2456,29 @@ function setJoinColumn(si,ci){
   renderSources();
 }
 function renderYesNoMappingIndicator(si,ci,c){
-  // lives in its own grid column, inline with the row — red "invalid/incomplete config"
-  // or green "confirmed," collapsed by default either way. Orange is reserved for
-  // metric semantics, not a warning color, so this isn't the right place for it.
-  const needsMapping = !c._mappingConfirmed;
-  const label = c._mappingExpanded ? 'Close' : (needsMapping ? '⚠ Mapping required' : '✓ Mapped');
-  const color = c._mappingExpanded ? 'var(--sub)' : (needsMapping ? 'var(--bad)' : 'var(--good)');
-  return `<button class="anchor-link" style="color:${color};" onclick="toggleMappingExpanded(${si},${ci})">${label}</button>`;
+  // shows the outcome, not a status: what the sheet's values will actually count as.
+  // "Mapped" used to mean "someone once pressed save, or this column pre-dates mapping" —
+  // so the label now says what the data will do, and the button says what to do about it.
+  const yes = (c.yesValues || []).filter(Boolean);
+  const btn = (label, cta) => `<button class="mini-btn ${cta ? 'cta' : ''}" onclick="toggleMappingExpanded(${si},${ci})">${label}</button>`;
+  if(c._mappingExpanded) return btn('Close', false);
+  const chips = yes.map(v=>`<span class="yn-chip">${escAttr(v)}</span>`).join('');
+  if(yes.length && c._mappingConfirmed) return `<div class="yn-sum"><span class="sub">Counts as Yes:</span>${chips}${btn('Edit', false)}</div>`;
+  if(yes.length) return `<div class="yn-sum"><span class="sub">Counts as Yes:</span>${chips}${btn('Confirm', true)}</div>`;
+  if(c._mappingConfirmed) return `<div class="yn-sum"><span class="sub">Default rule: starts with "y"</span>${btn('Review', false)}</div>`;
+  return `<div class="yn-sum"><span class="sub">Not set up</span>${btn('Set up', true)}</div>`;
 }
 function renderYesNoMappingDrawer(si,ci,c){
-  // opens below the whole row-card (full card width), not squeezed into one grid
-  // cell — this is what actually keeps the triggering row's own cells aligned
+  // opens below the whole row, full width, so the triggering row's own cells never shift
   const body = c._detectingValues
     ? `<div class="sub">Detecting…</div>`
     : (c._detectedValues
         ? renderYesNoPills(si,ci,c)
         : `<div class="sub">${c._detectError||'Not detected yet.'} <span style="cursor:pointer;color:var(--ink);text-decoration:underline;" onclick="detectColumnValues(${si},${ci})">Retry</span></div>`);
-  return `<div class="col-drawer">
-    <div class="fieldlabel" style="margin-bottom:8px;">YES/NO MAPPING</div>
+  return `<div class="yn-drawer">
+    <div class="fld-label" style="margin-bottom:10px;">Which values in this column count as Yes?</div>
     ${body}
-    <button class="small-btn" style="margin-top:10px;" onclick="confirmYesMapping(${si},${ci})">Save mapping</button>
+    <div class="step-actions" style="margin-top:12px;"><button class="mini-btn cta" onclick="confirmYesMapping(${si},${ci})">Save mapping</button></div>
   </div>`;
 }
 function toggleMappingExpanded(si,ci){
@@ -1729,15 +2493,12 @@ function toggleMappingExpanded(si,ci){
 function renderYesNoPills(si,ci,c){
   if(!c._detectedValues.length) return `<div class="sub">No values found in that column.</div>`;
   const yes = c.yesValues || [];
-  // switch per detected value, same on/off pattern as everywhere else — the result
-  // here genuinely is binary (counts as Yes, or doesn't), so it gets the same treatment
-  // No/Yes flank the switch inline — No on the left (the default, and the side the
-  // knob rests on when off), Yes on the right (the side it slides toward when on),
-  // so which state you're looking at never depends on remembering what the color means
+  // a switch per detected value: the result is genuinely binary (counts as Yes, or doesn't).
+  // No sits left and Yes right of the switch so the state never depends on remembering a color.
   const rows = c._detectedValues.map((dv,vi)=>{
     const isYes = yes.some(v=>v.toLowerCase()===dv.value.toLowerCase());
-    return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;">
-      <span style="font-size:12.5px;"><strong>${dv.value}</strong> <span style="opacity:.6;">×${dv.count}</span></span>
+    return `<div class="yn-val">
+      <span style="font-size:12.5px;"><strong>${escAttr(dv.value)}</strong> <span style="opacity:.6;">×${dv.count}</span></span>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:11px;font-weight:700;color:${isYes?'var(--muted)':'var(--ink)'};">No</span>
         <label class="switch"><input type="checkbox" ${isYes?'checked':''} onchange="toggleYesValue(${si},${ci},${vi})"><span class="slider"></span></label>
@@ -1746,8 +2507,10 @@ function renderYesNoPills(si,ci,c){
     </div>`;
   }).join('');
   return `<div>${rows}</div>
-    <div class="sub" style="margin-top:4px;">Selected values will operate as "Yes." Unselected values default to "No."</div>`;
+    <div class="sub" style="margin-top:6px;">Values you switch to Yes count as Yes. Anything else counts as No.</div>`;
 }
+
+
 async function detectColumnValues(si,ci){
   const src = state.sources[si];
   const col = src.columns[ci];
@@ -1794,7 +2557,12 @@ function toggleYesValue(si,ci,vi){
   col._mappingConfirmed = false; // mapping changed since the last save — needs re-confirming
   renderSources();
 }
-function setAnchor(si){ state.sources.forEach((s,i)=>s.isAnchor = (i===si)); renderSources(); }
+function setAnchor(si){
+  // the previous baseline becomes supplemental and has to be lined up with the new one
+  state.sources.forEach((s,i)=>{ if(s.isAnchor && i!==si){ s.connected = false; s._open = true; } s.isAnchor = (i===si); });
+  state.sources[si].connected = true;
+  renderSources();
+}
 function addColumn(si){
   const nextLetter = colLetter(state.sources[si].columns.length);
   state.sources[si].columns.push({letter:nextLetter, sample:"—", field:"New field", type:"Number"});
@@ -1810,7 +2578,7 @@ function removeColumn(si,ci){
   renderSources(); renderTrackedMetrics();
 }
 function addSource(){
-  state.sources.push({name:"", url:"", startRow:1, headerRow:null, isAnchor:false, columns:[]});
+  state.sources.push({name:"", url:"", startRow:2, headerRow:1, isAnchor:false, connected:false, columns:[]});
   renderSources(); renderTrackedMetrics();
 }
 async function removeSource(si){
@@ -1820,7 +2588,7 @@ async function removeSource(si){
     return;
   }
   if(src.isAnchor){
-    await appDialog({title:"Can't remove the join anchor", message:'This is the join anchor — set another source as the join anchor first, then remove this one.'});
+    await appDialog({title:"Can't remove the baseline sheet", message:'This is the baseline sheet — make another sheet the baseline first, then remove this one.'});
     return;
   }
   const label = src.name || src.url || 'this source';
@@ -1840,9 +2608,10 @@ async function removeSource(si){
 function renderWeekStartPills(){
   const el = document.getElementById('week-start-pills');
   el.innerHTML = ['Sunday','Monday'].map(d=>
-    `<button class="pill ${state.weekStart===d?'active':''}" onclick="setWeekStart('${d}')">${d}</button>`
+    `<button class="seg-btn ${state.weekStart===d?'on':''}" onclick="setWeekStart('${d}')">${d}</button>`
   ).join('');
 }
+
 function setWeekStart(d){
   state.weekStart = d;
   WEEKLY_BUCKETS = buildWeeklyBuckets(); // week boundaries just changed — rebuild
@@ -1862,21 +2631,23 @@ function renderKPIConfig(){
     .filter(([f,t])=>t==='Number')
     .map(([f])=>f);
 
+  // every editable value is a well or a select, so it reads as something you can change;
+  // a column that doesn't apply to an operation holds a quiet dash so the rows stay aligned
   el.innerHTML = state.kpiConfig.map((k,i)=>{
     const isStructural = OPS_STRUCTURAL.some(o=>o.v===k.op);
     const needsPeriod = !['running_total','streak_logged','count_logged'].includes(k.op);
+    const showsDirection = !isStructural && (k.period==='week' || k.period==='4week');
+    const dash = `<span class="kc-na">—</span>`;
 
     return `
-    <div class="kpi-config-row ${k.active?'':'inactive'}">
-      <div class="move">
-        <button onclick="moveKPI(${i},-1)" ${i===0?'disabled':''}>▲</button>
-        <button onclick="moveKPI(${i},1)" ${i===state.kpiConfig.length-1?'disabled':''}>▼</button>
-      </div>
-      <div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1;">
-        <input type="text" style="width:170px;" value="${k.label}" placeholder="Label"
-          oninput="updateKPICfg(${i},'label',this.value)"/>
-
-        <select class="type-select" style="width:130px;" onchange="updateKPICfg(${i},'op',this.value); updateKPICfg(${i},'field', document.getElementById('field-sel-${i}') ? document.getElementById('field-sel-${i}').value : null)">
+    <div class="kc-grid kc-row ${k.active ? '' : 'inactive'}">
+      <span class="kc-move">
+        <button onclick="moveKPI(${i},-1)" ${i===0?'disabled':''} aria-label="Move up">▲</button>
+        <button onclick="moveKPI(${i},1)" ${i===state.kpiConfig.length-1?'disabled':''} aria-label="Move down">▼</button>
+      </span>
+      <span><input type="text" value="${escAttr(k.label)}" placeholder="Label" oninput="updateKPICfg(${i},'label',this.value)"/></span>
+      <span>
+        <select class="type-select" onchange="updateKPICfg(${i},'op',this.value); updateKPICfg(${i},'field', document.getElementById('field-sel-${i}') ? document.getElementById('field-sel-${i}').value : null)">
           <optgroup label="Field metrics (sum / average / etc.)">
             ${OPS_NUMBER.map(o=>`<option value="${o.v}" ${o.v===k.op?'selected':''}>${o.t}</option>`).join('')}
           </optgroup>
@@ -1884,31 +2655,30 @@ function renderKPIConfig(){
             ${OPS_STRUCTURAL.map(o=>`<option value="${o.v}" ${o.v===k.op?'selected':''}>${o.t}</option>`).join('')}
           </optgroup>
         </select>
-
-        ${!isStructural ? `
-        <select id="field-sel-${i}" class="type-select" style="width:140px;" onchange="updateKPICfg(${i},'field',this.value)">
-          ${numericFieldNames.map(f=>`<option value="${f}" ${f===k.field?'selected':''}>${f}</option>`).join('')}
-        </select>` : ''}
-
-        ${needsPeriod ? `
-        <select class="type-select" style="width:130px;" onchange="updateKPICfg(${i},'period',this.value)">
+      </span>
+      <span>${!isStructural ? `
+        <select id="field-sel-${i}" class="type-select" onchange="updateKPICfg(${i},'field',this.value)">
+          ${numericFieldNames.map(f=>`<option value="${escAttr(f)}" ${f===k.field?'selected':''}>${escAttr(f)}</option>`).join('')}
+        </select>` : dash}</span>
+      <span>${needsPeriod ? `
+        <select class="type-select" onchange="updateKPICfg(${i},'period',this.value)">
           ${PERIODS.map(p=>`<option value="${p.v}" ${p.v===k.period?'selected':''}>${p.t}</option>`).join('')}
-        </select>` : ''}
-
-        ${!isStructural && (k.period==='week'||k.period==='4week') ? `
-        <button class="anchor-link" onclick="updateKPICfg(${i},'higherIsBetter',${k.higherIsBetter===false?'true':'false'})" title="Controls which direction colors green on the comparison badge">
-          ${k.higherIsBetter===false ? '↓ Lower is better' : '↑ Higher is better'}
-        </button>` : ''}
-      </div>
-      <label class="switch"><input type="checkbox" ${k.active?'checked':''} onchange="toggleKPI(${i})"><span class="slider"></span></label>
-      <button class="remove-btn" onclick="removeKPI(${i})">remove</button>
+        </select>` : dash}</span>
+      <span>${showsDirection ? `
+        <select class="type-select" title="Sets which direction of change shows as an improvement on the comparison badge" onchange="updateKPICfg(${i},'higherIsBetter',this.value==='higher')">
+          <option value="higher" ${k.higherIsBetter===false?'':'selected'}>Higher</option>
+          <option value="lower" ${k.higherIsBetter===false?'selected':''}>Lower</option>
+        </select>` : dash}</span>
+      <span style="text-align:right;"><label class="switch"><input type="checkbox" ${k.active?'checked':''} onchange="toggleKPI(${i})"><span class="slider"></span></label></span>
+      <span style="text-align:right;"><button class="remove-btn" onclick="removeKPI(${i})">remove</button></span>
     </div>`;
   }).join('');
 
   const activeCount = state.kpiConfig.filter(k=>k.active).length;
   document.getElementById('kpi-count-note').textContent =
-    `${activeCount} of 3–5 active on the dashboard`;
+    `${activeCount} on your dashboard · 3 to 5 works best`;
 }
+
 function updateKPICfg(i, field, val){
   state.kpiConfig[i][field] = val;
   if(field==='op'){
@@ -2145,6 +2915,32 @@ async function refreshThenAnalyze(btn){
   openAnalyzeWeek(); // re-checks: opens the form if data landed, the reminder again if not
 }
 
+// What the coach will be sent, in plain words. Follows the same windows buildExportText() uses.
+function analyzeSummaryRows(start, end){
+  const rangeEnd = TODAY < end ? TODAY : end;
+  const fourWeeksStart = new Date(rangeEnd); fourWeeksStart.setDate(fourWeeksStart.getDate() - 27);
+  const inWindow = (r, a, b) => { const dt = new Date(r.date); return dt >= a && dt <= b; };
+  const dailyDays = DATA.filter(r => inWindow(r, fourWeeksStart, rangeEnd)).length;
+  const numberFields = fieldsOfType('Number');
+  const goalFields = fieldsOfType('Y/N Daily Goal');
+  const textFields = fieldsOfType('Text');
+  let weeks = 0;
+  for(let w = 3; w >= 0; w--){
+    const wEnd = new Date(rangeEnd); wEnd.setDate(wEnd.getDate() - w * 7);
+    const wStart = new Date(wEnd); wStart.setDate(wEnd.getDate() - 6);
+    if(DATA.some(r => inWindow(r, wStart, wEnd))) weeks++;
+  }
+  const rows = [['Daily numbers', `${dailyDays} days`, ['Weight'].concat(numberFields).join(', ')]];
+  if(goalFields.length) rows.push(['Daily goals', `${goalFields.length} goal${goalFields.length === 1 ? '' : 's'}`, goalFields.join(', ')]);
+  rows.push(['Weekly averages', weeks === 1 ? 'This week' : `Last ${weeks} weeks`, '']);
+  if(textFields.length){
+    const notes = DATA.filter(r => inWindow(r, start, rangeEnd) && textFields.some(f => r[f])).length;
+    rows.push(['Context notes', notes ? `${notes} day${notes === 1 ? '' : 's'} with notes this week` : 'None this week', '']);
+  }
+  if(typeof programArc !== 'undefined' && programArc) rows.push(['Program arc', 'All-time summary', 'lowest weight, distance from it, days since']);
+  return rows;
+}
+
 function openAnalyzeWeek(){
   const {start, end} = getWeekBounds(state.weekOffset);
   if(weekDataCount(start, end) === 0){ openNoDataReminder(start, end); return; }
@@ -2152,34 +2948,59 @@ function openAnalyzeWeek(){
   const weekEndKey = normalizeDateKey(end);
   const text = buildExportText();
   const existing = findRecommendationForWeek(weekStartKey);
+  const rowsHtml = analyzeSummaryRows(start, end).map(([k, v, d]) =>
+    `<div class="an-r"><span class="an-k">${k}</span><span class="an-v">${escAttr(v)}${d ? ` <em>· ${escAttr(d)}</em>` : ''}</span></div>`).join('');
 
   const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;';
+  modal.className = 'an-back';
+  modal.style.cssText = 'position:fixed;inset:0;';
   modal.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:720px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <div class="label" style="color:var(--purple-hover);">Analyze Week — ${fmtShort(start)} – ${fmtShort(end)}</div>
-        <button class="analyze-close-btn" onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--sub);font-size:18px;cursor:pointer;">✕</button>
+    <div class="an-modal" role="dialog" aria-modal="true" aria-label="Analyze week">
+      <div class="an-head">
+        <div class="an-id">
+          <span class="an-disc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <div>
+            <div class="an-title">Analyze week</div>
+            <div class="an-sub">${fmtShort(start)} to ${fmtShort(end)}</div>
+          </div>
+        </div>
+        <button class="an-x analyze-close-btn" aria-label="Close" onclick="this.closest('div[style*=fixed]').remove()">✕</button>
       </div>
-      ${existing ? `<div class="sub" style="color:var(--bad);margin-bottom:12px;">This week already has an analysis — running again will replace it.</div>` : ''}
 
-      <div class="fieldlabel" style="margin-bottom:6px;">HOW DID THIS WEEK GO?</div>
-      <div class="sub" style="margin-bottom:8px;">The coach asks this first — vacation, a rough stretch, whatever's worth knowing before it looks at the numbers.</div>
-      <textarea id="week-summary-input" placeholder="e.g. Stressful week at work, but held steady on tracking..." style="min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:13px;padding:12px;"></textarea>
+      <div class="an-body">
+        ${existing ? `<div class="an-note">This week already has an analysis. Running again replaces it.</div>` : ''}
 
-      <div class="fieldlabel" style="margin-top:16px;margin-bottom:6px;">DATA BEING SENT</div>
-      <textarea id="week-digest-readonly" readonly style="min-height:220px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:monospace;font-size:12px;padding:12px;white-space:pre;overflow:auto;">${text}</textarea>
+        <div class="an-sec">
+          <div class="an-h">How did this week go?</div>
+          <div class="an-d">Your coach asks this first. Vacation, a rough stretch, whatever's worth knowing before it looks at the numbers.</div>
+          <textarea id="week-summary-input" class="an-ta" placeholder="e.g. Stressful week at work, but held steady on tracking..."></textarea>
+        </div>
 
-      <div id="analyze-status" class="sub" style="margin-top:12px;min-height:16px;"></div>
+        <div class="an-sec">
+          <div class="an-h">What your coach will see</div>
+          <div class="an-d">A summary of what's sent with this week. Your profile and recent coaching history go along with it.</div>
+          <div class="an-rows">${rowsHtml}</div>
+          <details class="an-exact">
+            <summary>Show the exact text</summary>
+            <textarea id="week-digest-readonly" readonly>${escAttr(text)}</textarea>
+          </details>
+        </div>
+      </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
-        <button class="btn" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
-        <button class="btn btn-agentic" id="run-analysis-btn" onclick="runWeekAnalysis(this,'${weekStartKey}','${weekEndKey}',${!!existing})">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg><span id="run-analysis-label">Run Analysis</span>
-        </button>
+      <div class="an-foot">
+        <div>
+          <div id="analyze-status" class="an-status"></div>
+          <div class="an-help">A real analysis takes about 1 to 4 minutes.</div>
+        </div>
+        <div class="an-actions">
+          <button class="btn analyze-close-btn" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+          <button class="btn btn-agentic" id="run-analysis-btn" onclick="runWeekAnalysis(this,'${weekStartKey}','${weekEndKey}',${!!existing})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg><span id="run-analysis-label">Run analysis</span>
+          </button>
+        </div>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -2199,11 +3020,11 @@ async function runWeekAnalysis(btn, weekStartKey, weekEndKey, hadExisting){
   const digestText = document.getElementById('week-digest-readonly').value;
   const weeklySummary = document.getElementById('week-summary-input').value.trim();
   const status = document.getElementById('analyze-status');
-  const closeBtn = modalRoot.querySelector('.analyze-close-btn');
+  const closeBtns = [...modalRoot.querySelectorAll('.analyze-close-btn')];
   const label = document.getElementById('run-analysis-label'); // separate from btn's icon, so the icon survives label changes
 
   btn.disabled = true; label.textContent = 'Analyzing…';
-  closeBtn.style.visibility = 'hidden'; // don't let the request get orphaned mid-flight
+  closeBtns.forEach(b => b.style.visibility = 'hidden'); // don't let the request get orphaned mid-flight
 
   let elapsed = 0;
   status.textContent = `Analyzing… 0s of ~${COACH_ANALYSIS_EXPECTED_SECS}s expected`;
@@ -2223,8 +3044,8 @@ async function runWeekAnalysis(btn, weekStartKey, weekEndKey, hadExisting){
     if(!res.ok || !payload.ok){
       status.style.color = 'var(--bad)';
       status.textContent = `Failed: ${payload.error || `Request failed (${res.status})`}`;
-      btn.disabled = false; label.textContent = 'Run Analysis';
-      closeBtn.style.visibility = 'visible';
+      btn.disabled = false; label.textContent = 'Run analysis';
+      closeBtns.forEach(b => b.style.visibility = 'visible');
       return;
     }
 
@@ -2237,8 +3058,8 @@ async function runWeekAnalysis(btn, weekStartKey, weekEndKey, hadExisting){
     clearInterval(ticker);
     status.style.color = 'var(--bad)';
     status.textContent = `Failed: ${e.message}`;
-    btn.disabled = false; label.textContent = 'Run Analysis';
-    closeBtn.style.visibility = 'visible';
+    btn.disabled = false; label.textContent = 'Run analysis';
+    closeBtns.forEach(b => b.style.visibility = 'visible');
   }
 }
 
@@ -2255,6 +3076,7 @@ function renderAll(){
   renderSources();
   renderWeekStartPills();
   renderKPIConfig();
+  renderTrendSignals();
   renderGoalPills();
   renderCoachProfile();
   renderCoachCard();

@@ -147,10 +147,22 @@ function joinSources(parsedBySrc, sources){
   const dateKeys = Object.keys(anchorRecords).sort();
   return dateKeys.map(dateKey=>{
     let merged = { date: dateKey };
+    // supplemental sheets first, in list order, then the baseline last — so when two sheets carry a field with
+    // the same name, the baseline's value is the one that remains. A blank baseline cell is not a
+    // disagreement, so it never overwrites a value the supplemental sheet actually has.
     sources.forEach((src, si)=>{
+      if(si === anchorIdx) return;
       const rec = parsedBySrc[si] && parsedBySrc[si].records[dateKey];
       if(rec) merged = Object.assign(merged, rec);
     });
+    const anchorRec = anchorRecords[dateKey];
+    if(anchorRec){
+      Object.keys(anchorRec).forEach(k=>{
+        const v = anchorRec[k];
+        if(v !== null && v !== undefined && v !== '') merged[k] = v;
+        else if(!(k in merged)) merged[k] = v;
+      });
+    }
     return normalizeRecordToInternalShape(merged);
   });
 }

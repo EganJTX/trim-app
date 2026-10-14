@@ -68,8 +68,78 @@ fences, in exactly this shape:
 }
 `.trim();
 
-function buildCoachPrompt({ profileText, digestText, weeklySummary, recentHistory, weekStart, weekEnd }) {
-  const parts = [COACH_PERSONA, '', `Assessing the week of ${weekStart} through ${weekEnd}.`];
+// ── Coach style: five dials, each 1 to 5, set on the Profile tab. When the person has set any of them, the
+// "Your voice" paragraph and the two bullets that fix the size and framing of feedback are replaced with text
+// built from their settings. When nothing is set, COACH_PERSONA is used exactly as written. Method and safety
+// (weigh weeks over single days, never extreme restriction or overhauls, never shaming) stay in every version.
+// Keep this table in step with COACH_DIALS in index.html: the fragments are the same sentences the UI shows.
+const COACH_STYLE = [
+  { key: "warmth", def: 4, frags: [
+    "sticks to the numbers and what they show, without cheerleading",
+    "keeps to the facts and adds a light note of encouragement",
+    "balances what is going well with what needs attention, in an even tone",
+    "leads with what is going well and keeps a warm, positive tone",
+    "celebrates your progress and keeps an upbeat tone, even through a rough week"
+  ] },
+  { key: "delivery", def: 4, frags: [
+    "says plainly what the data shows, including what is not working, without softening it",
+    "says what it sees clearly and keeps the wording short and to the point",
+    "names what the data shows, good and hard, in an even, matter-of-fact way",
+    "names what the data shows, including the harder parts, and frames it kindly",
+    "introduces harder points with care and frames each one around what you can do next"
+  ] },
+  { key: "directive", def: 2, frags: [
+    "reflects the week back and asks what you think before suggesting anything",
+    "offers a recommendation with its reasoning and leaves room for your take",
+    "gives a clear recommendation and explains why, while welcoming your input",
+    "gives a clear recommendation for the week and expects you to run with it",
+    "gives you a specific plan for the week and what to do first"
+  ] },
+  { key: "pace", def: 2, frags: [
+    "suggests a single, very small change and lets it settle before the next",
+    "suggests one or two small, sustainable changes at a time, starting with what is working",
+    "suggests a couple of meaningful changes that fit your current routine",
+    "suggests a few stretching changes and moves at a quicker pace, while staying realistic about your week",
+    "pushes for faster results with a real stretch each week, always keeping it sustainable and safe"
+  ] },
+  { key: "accountability", def: 2, frags: [
+    "mentions last week's focus in passing and moves on",
+    "checks last week's focus against what happened and encourages you from there",
+    "reviews last week's focus against what happened and talks plainly about the gap",
+    "holds you to last week's focus and asks what will change if it slipped",
+    "holds you firmly to last week's focus and corrects course directly, always on your side"
+  ] }
+];
+
+function validDial(v) { return Number.isInteger(v) && v >= 1 && v <= 5; }
+
+function personaFor(style) {
+  if (!style || typeof style !== 'object') return COACH_PERSONA;
+  if (!COACH_STYLE.some(d => validDial(style[d.key]))) return COACH_PERSONA;
+  const pick = d => d.frags[(validDial(style[d.key]) ? style[d.key] : d.def) - 1];
+  const [warmth, delivery, directive, pace, accountability] = COACH_STYLE.map(pick);
+  const voice = 'Your voice, as the person has set it: the coach ' + warmth + '. It ' + delivery + '. It ' + directive +
+    '. It ' + pace + '. It ' + accountability + ". Whatever the settings, you are on the person's side, and the aim is to " +
+    'keep them oriented toward the goal and honest with themselves, never to shame them or punish a rough week.';
+  const swaps = [
+    [/Your voice: supportive[\s\S]*?never to punish a rough week\./, voice],
+    [/- Recommend small, specific, sustainable adjustments[\s\S]*?suggesting what to change\./,
+      '- Size the adjustments to the pace described in your voice guidance, and keep them specific and sustainable. ' +
+      'Never recommend extreme restriction, overhauls, or "never do X again." Reinforce what is already working ' +
+      'before suggesting what to change.'],
+    [/Frame this as encouragement and course-correction, never\s+as a scorecard or a callout\./,
+      "Frame it the way your voice guidance describes, always on the person's side and never as shaming."]
+  ];
+  let out = COACH_PERSONA;
+  for (const [rx, rep] of swaps) {
+    if (!rx.test(out)) return COACH_PERSONA; // if the persona text ever changes shape, fall back to it unmodified
+    out = out.replace(rx, () => rep);
+  }
+  return out;
+}
+
+function buildCoachPrompt({ profileText, digestText, weeklySummary, recentHistory, weekStart, weekEnd, style }) {
+  const parts = [personaFor(style), '', `Assessing the week of ${weekStart} through ${weekEnd}.`];
 
   if (profileText) {
     parts.push('', 'PERSON PROFILE & TARGETS', profileText);
@@ -108,7 +178,8 @@ function runCoachAnalysis({ configPath, recommendationsPath, weekStart, weekEnd,
 
     const profileText = renderCoachProfile(config.coachProfile);
     const recentHistory = recentHistoryFor(recommendationsPath, weekStart);
-    const prompt = buildCoachPrompt({ profileText, digestText, weeklySummary, recentHistory, weekStart, weekEnd });
+    const prompt = buildCoachPrompt({ profileText, digestText, weeklySummary, recentHistory, weekStart, weekEnd,
+      style: config.coachProfile && config.coachProfile.style });
 
     // Same Windows shell:true / `--tools ""` handling as job-tracker's
     // evaluate-ghosted.js — see that file's comment for the full rationale.
@@ -226,4 +297,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { runCoachAnalysis, buildCoachPrompt, COACH_PERSONA };
+module.exports = { runCoachAnalysis, buildCoachPrompt, COACH_PERSONA, personaFor };
