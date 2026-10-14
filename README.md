@@ -6,7 +6,7 @@ A local, single-user dashboard for tracking a weight-loss goal against whatever 
 
 Trim is **not** an AI app by itself — it has no built-in LLM calls for anything the dashboard itself does. It reads your data straight from one or more Google Sheets (public CSV export links, no API keys), joins them by date, and turns the result into a weekly-anchored dashboard: KPIs, a trend chart, and a Y/N daily-goal compliance card, all following the same week selector.
 
-The one optional AI feature is the **Coach**: click "Analyze Week" and it shells out locally to the [Claude Code CLI](https://claude.com/product/claude-code) in headless mode to write a short weekly assessment (verdict + recommendation), stored per-week so it can check your last few weeks of history before writing a new one. This requires the `claude` CLI installed and authenticated on your own machine. The app itself never calls a hosted API, but the CLI does: it sends that week's logged data, a summary of your all-time progress, your profile, and recent recommendations to Anthropic under your own account. If you don't have the CLI installed, or don't want that data leaving your machine, everything else in Trim still works without it.
+The one optional AI feature is the **Coach**: click "Analyze Week" and it shells out locally to the [Claude Code CLI](https://claude.com/product/claude-code) in headless mode to write a short weekly assessment (verdict + recommendation), stored per-week so it can check your last few weeks of history before writing a new one. On the **Profile** tab you tell the coach your story and targets, and set five style dials (warmth, delivery, directiveness, pace, and accountability) that control how it sounds and how hard it pushes. This requires the `claude` CLI installed and authenticated on your own machine. The app itself never calls a hosted API, but the CLI does: it sends that week's logged data, a summary of your all-time progress, your profile, any weekly notes you write, and recent recommendations to Anthropic under your own account. If you don't have the CLI installed, or don't want that data leaving your machine, everything else in Trim still works without it.
 
 ## Setup
 
@@ -20,6 +20,8 @@ Then open `http://localhost:3002/trim-app`.
 On first run, `config.json` doesn't exist yet — the server creates it automatically from the committed `config.example.json` template, which is just an empty shell (no sources, no profile). Open **Settings → Data** and add your first Google Sheet: a name, a public share link, and which columns map to what (Date, Number, Weight, Y/N Daily Goal, or Text). One column across all your sources needs to be Typed as Weight — it drives the trend chart and KPIs.
 
 Your sheet must be shared as "Anyone with the link can view" for the CSV export fetch to work — nothing else about the sheet needs to change.
+
+If you plan to use the Coach, fill in the **Profile** tab too: where you started, what you're working toward, and which tracked numbers matter most. The coach reads it as written, and the style dials there are optional.
 
 ## Data and privacy
 

@@ -2736,20 +2736,15 @@ function fieldsOfType(type){
 }
 
 function buildExportText(){
-  const {start, end} = getWeekBounds(state.weekOffset);
-  const rangeEnd = TODAY < end ? TODAY : end;
+  const win = exportWindow();
+  const {start, end} = win;
 
   const numberFields = fieldsOfType('Number'); // Weight is reported separately below, always first
   const goalFields = fieldsOfType('Y/N Daily Goal'); // every mapped goal, regardless of dashboard visibility
   const textFields = fieldsOfType('Text');
 
-  // rolling 4 weeks of daily rows for numbers + goals, ending at the selected week
-  const fourWeeksStart = new Date(rangeEnd);
-  fourWeeksStart.setDate(fourWeeksStart.getDate() - 27);
-  const dailyRecs = DATA.filter(r=>{
-    const dt = new Date(r.date);
-    return dt >= fourWeeksStart && dt <= rangeEnd;
-  });
+  // daily rows for numbers + goals: four complete calendar weeks, ending with the selected week
+  const dailyRecs = DATA.filter(r => r.date >= win.windowStartKey && r.date <= win.lastKey);
 
   let out = `Daily Numbers (Date, Weight${numberFields.length?', '+numberFields.join(', '):''})\n`;
   dailyRecs.forEach(r=>{
@@ -2764,10 +2759,9 @@ function buildExportText(){
   }
 
   out += '\n4 Week Averages (Week Ending, Avg Weight' + numberFields.map(f=>`, Avg ${f}`).join('') + goalFields.map(f=>`, Compliant ${f}`).join('') + ')\n';
-  for(let w=3; w>=0; w--){
-    const wEnd = new Date(rangeEnd); wEnd.setDate(wEnd.getDate() - w*7);
-    const wStart = new Date(wEnd); wStart.setDate(wEnd.getDate()-6);
-    const wRecs = DATA.filter(r=>{ const dt=new Date(r.date); return dt>=wStart && dt<=wEnd; });
+  for(const wk of win.weeks){
+    const wEnd = wk.endDate;
+    const wRecs = DATA.filter(r => r.date >= wk.startKey && r.date <= wk.endKey && r.date <= win.lastKey);
     if(wRecs.length===0) continue;
     const avg = f => (wRecs.reduce((s,r)=>s+(r[f]||0),0)/wRecs.length);
     const compliant = f => wRecs.filter(r=>r[f]).length;
@@ -2780,8 +2774,8 @@ function buildExportText(){
   // Text/context fields — scoped to just the selected week, not the rolling 4 weeks,
   // since these are meant as color for THIS check-in, not a trend
   if(textFields.length){
-    const weekRecs = DATA.filter(r=>{ const dt=new Date(r.date); return dt>=start && dt<=rangeEnd; });
-    out += `\nWeekly Context (${fmtShort(start)} – ${fmtShort(rangeEnd)})\n`;
+    const weekRecs = DATA.filter(r => r.date >= win.weekStartKey && r.date <= win.lastKey);
+    out += `\nWeekly Context (${fmtShort(start)} – ${fmtShort(end)})\n`;
     weekRecs.forEach(r=>{
       textFields.forEach(f=>{
         if(r[f]) out += `${r.date} — ${f}: ${r[f]}\n`;
@@ -2915,26 +2909,81 @@ async function refreshThenAnalyze(btn){
   openAnalyzeWeek(); // re-checks: opens the form if data landed, the reminder again if not
 }
 
-// What the coach will be sent, in plain words. Follows the same windows buildExportText() uses.
+// The coach only assesses complete weeks: enough context to see the bigger picture and the trajectory, never a
+// day-by-day read. A week counts as complete once today is its last day (the same test the dashboard uses on load).
+function isWeekComplete(end){ return normalizeDateKey(TODAY) >= normalizeDateKey(end); }
+
+// The export window, in date KEYS (plain "YYYY-MM-DD" strings compare correctly with no time zone involved):
+// four calendar weeks built from the week-start setting, ending with the selected week.
+function exportWindow(){
+  const {start, end} = getWeekBounds(state.weekOffset);
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const key = normalizeDateKey;
+  const lastKey = key(end) < key(TODAY) ? key(end) : key(TODAY);
+  const weeks = [3, 2, 1, 0].map(w => ({
+    startKey: key(addDays(start, -7 * w)),
+    endKey: key(addDays(start, -7 * w + 6)),
+    endDate: addDays(start, -7 * w + 6)
+  }));
+  return { start, end, lastKey, windowStartKey: weeks[0].startKey, weekStartKey: key(start), weeks };
+}
+
+// Shown instead of the form when the selected week hasn't finished yet.
+function openWeekInProgressReminder(start, end){
+  const modal = document.createElement('div');
+  modal.className = 'an-back';
+  modal.style.cssText = 'position:fixed;inset:0;';
+  const prevS = new Date(start); prevS.setDate(prevS.getDate() - 7);
+  const prevE = new Date(end); prevE.setDate(prevE.getDate() - 7);
+  const endsOn = end.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  modal.innerHTML = `
+    <div class="an-modal" style="width:520px;" role="dialog" aria-modal="true" aria-label="This week isn't finished yet">
+      <div class="an-head">
+        <div class="an-id">
+          <span class="an-disc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div>
+            <div class="an-title">This week isn't finished yet</div>
+            <div class="an-sub">${fmtShort(start)} to ${fmtShort(end)}</div>
+          </div>
+        </div>
+        <button class="an-x" aria-label="Close" onclick="this.closest('div[style*=fixed]').remove()">✕</button>
+      </div>
+      <div class="an-body">
+        <div class="an-sec">
+          <div class="an-h">Your coach looks at complete weeks</div>
+          <div class="an-d">That gives it enough to see the bigger picture and your trajectory, not a day-by-day read. You can analyze this week once it ends on ${endsOn}, or look at last week now.</div>
+        </div>
+      </div>
+      <div class="an-foot">
+        <span class="an-help">Last week: ${fmtShort(prevS)} to ${fmtShort(prevE)}</span>
+        <div class="an-actions">
+          <button class="btn" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+          <button class="btn btn-agentic" onclick="analyzeLastWeek(this)">Analyze last week</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+function analyzeLastWeek(btn){
+  btn.closest('div[style*=fixed]').remove();
+  shiftWeek(-1);
+  openAnalyzeWeek();
+}
+
+// What the coach will be sent, in plain words. Follows the same window buildExportText() uses.
 function analyzeSummaryRows(start, end){
-  const rangeEnd = TODAY < end ? TODAY : end;
-  const fourWeeksStart = new Date(rangeEnd); fourWeeksStart.setDate(fourWeeksStart.getDate() - 27);
-  const inWindow = (r, a, b) => { const dt = new Date(r.date); return dt >= a && dt <= b; };
-  const dailyDays = DATA.filter(r => inWindow(r, fourWeeksStart, rangeEnd)).length;
+  const win = exportWindow();
+  const inWeek = (r, wk) => r.date >= wk.startKey && r.date <= wk.endKey && r.date <= win.lastKey;
+  const dailyDays = DATA.filter(r => r.date >= win.windowStartKey && r.date <= win.lastKey).length;
   const numberFields = fieldsOfType('Number');
   const goalFields = fieldsOfType('Y/N Daily Goal');
   const textFields = fieldsOfType('Text');
-  let weeks = 0;
-  for(let w = 3; w >= 0; w--){
-    const wEnd = new Date(rangeEnd); wEnd.setDate(wEnd.getDate() - w * 7);
-    const wStart = new Date(wEnd); wStart.setDate(wEnd.getDate() - 6);
-    if(DATA.some(r => inWindow(r, wStart, wEnd))) weeks++;
-  }
+  const weeks = win.weeks.filter(wk => DATA.some(r => inWeek(r, wk))).length;
   const rows = [['Daily numbers', `${dailyDays} days`, ['Weight'].concat(numberFields).join(', ')]];
   if(goalFields.length) rows.push(['Daily goals', `${goalFields.length} goal${goalFields.length === 1 ? '' : 's'}`, goalFields.join(', ')]);
   rows.push(['Weekly averages', weeks === 1 ? 'This week' : `Last ${weeks} weeks`, '']);
   if(textFields.length){
-    const notes = DATA.filter(r => inWindow(r, start, rangeEnd) && textFields.some(f => r[f])).length;
+    const notes = DATA.filter(r => r.date >= win.weekStartKey && r.date <= win.lastKey && textFields.some(f => r[f])).length;
     rows.push(['Context notes', notes ? `${notes} day${notes === 1 ? '' : 's'} with notes this week` : 'None this week', '']);
   }
   if(typeof programArc !== 'undefined' && programArc) rows.push(['Program arc', 'All-time summary', 'lowest weight, distance from it, days since']);
@@ -2943,6 +2992,7 @@ function analyzeSummaryRows(start, end){
 
 function openAnalyzeWeek(){
   const {start, end} = getWeekBounds(state.weekOffset);
+  if(!isWeekComplete(end)){ openWeekInProgressReminder(start, end); return; } // complete weeks only
   if(weekDataCount(start, end) === 0){ openNoDataReminder(start, end); return; }
   const weekStartKey = normalizeDateKey(start);
   const weekEndKey = normalizeDateKey(end);

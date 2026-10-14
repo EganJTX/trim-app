@@ -173,6 +173,14 @@ function runCoachAnalysis({ configPath, recommendationsPath, weekStart, weekEnd,
       return resolve({ ok: false, status: 400, error: 'Missing weekStart/weekEnd/digestText' });
     }
 
+    // Complete weeks only: the coach reads the bigger picture and the trajectory, so a week that has not
+    // ended is refused here as well, whatever the client sends.
+    const pad = n => String(n).padStart(2, '0');
+    const todayKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    if (String(weekEnd) > todayKey) {
+      return resolve({ ok: false, status: 400, error: 'This week is not complete yet. Your coach analyzes complete weeks.' });
+    }
+
     let config = {};
     try { config = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (e) { /* no config yet — profile stays empty */ }
 
